@@ -37,11 +37,13 @@ void http_callback_wifidog(httpd *, request *);
 void http_callback_about(httpd *, request *);
 /**@brief Callback for libhttpd */
 void http_callback_status(httpd *, request *);
+
 /**@brief Callback for libhttpd, main entry point post login for auth confirmation */
 void http_callback_auth(httpd *, request *);
 void http_callback_auth_null(httpd * webserver, request * r);
 void http_callback_release(httpd * webserver, request * r);
 void http_callback_allow_redirect(httpd * webserver, request * r);
+
 /**@brief Callback for libhttpd, disconnect user from network */
 void http_callback_disconnect(httpd *, request *);
 

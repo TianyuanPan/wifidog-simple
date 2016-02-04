@@ -52,11 +52,9 @@
 #include "gateway.h"
 #include "firewall.h"
 #include "commandline.h"
-#include "auth.h"
 #include "http.h"
 #include "client_list.h"
 #include "wdctl_thread.h"
-#include "ping_thread.h"
 #include "httpd_thread.h"
 #include "util.h"
 
@@ -64,8 +62,8 @@
  * We need to remember the thread IDs of threads that simulate wait with pthread_cond_timedwait
  * so we can explicitly kill them in the termination handler
  */
-static pthread_t tid_fw_counter = 0;
-static pthread_t tid_ping = 0;
+//static pthread_t tid_fw_counter = 0;
+//static pthread_t tid_ping = 0;
 
 time_t started_time = 0;
 
@@ -279,14 +277,15 @@ termination_handler(int s)
      * termination handler) from happening so we need to explicitly kill the threads 
      * that use that
      */
-    if (tid_fw_counter && self != tid_fw_counter) {
-        debug(LOG_INFO, "Explicitly killing the fw_counter thread");
-        pthread_kill(tid_fw_counter, SIGKILL);
-    }
-    if (tid_ping && self != tid_ping) {
-        debug(LOG_INFO, "Explicitly killing the ping thread");
-        pthread_kill(tid_ping, SIGKILL);
-    }
+
+//    if (tid_fw_counter && self != tid_fw_counter) {
+//        debug(LOG_INFO, "Explicitly killing the fw_counter thread");
+//        pthread_kill(tid_fw_counter, SIGKILL);
+//    }
+//    if (tid_ping && self != tid_ping) {
+//        debug(LOG_INFO, "Explicitly killing the ping thread");
+//        pthread_kill(tid_ping, SIGKILL);
+//    }
 
     debug(LOG_NOTICE, "Exiting...");
     exit(s == 0 ? 1 : 0);
@@ -345,6 +344,148 @@ init_signals(void)
     }
 }
 
+
+/* Helper function called by connect_auth_server() to do the actual work including recursion
+ * DO NOT CALL DIRECTLY
+ @param level recursion level indicator must be 0 when not called by _connect_auth_server()
+ */
+//int is_auth_server_online(int level)
+//{
+//	s_config *config = config_get_config();
+//	t_auth_serv *auth_server = NULL;
+//	t_popular_server *popular_server = NULL;
+//	struct in_addr *h_addr;
+//	int num_servers = 0;
+//	char *hostname = NULL;
+//	char *ip;
+//
+//	/* If there are no auth servers, error out, from scan-build warning. */
+//	if (NULL == config->auth_servers) {
+//		return (0);
+//	}
+//
+//	/* XXX level starts out at 0 and gets incremented by every iterations. */
+//	level++;
+//
+//	/*
+//	 * Let's calculate the number of servers we have
+//	 */
+//	for (auth_server = config->auth_servers; auth_server; auth_server =
+//			auth_server->next) {
+//		num_servers++;
+//	}
+//	debug(LOG_DEBUG, "Level %d: Calculated %d auth servers in list", level,
+//			num_servers);
+//
+//	if (level > num_servers) {
+//		/*
+//		 * We've called ourselves too many times
+//		 * This means we've cycled through all the servers in the server list
+//		 * at least once and none are accessible
+//		 */
+//		return (0);
+//	}
+//
+//	/*
+//	 * Let's resolve the hostname of the top server to an IP address
+//	 */
+//	auth_server = config->auth_servers;
+//	hostname = auth_server->authserv_hostname;
+//	debug(LOG_DEBUG, "Level %d: Resolving auth server [%s]", level, hostname);
+//	h_addr = wd_gethostbyname(hostname);
+//	if (!h_addr) {
+//		/*
+//		 * DNS resolving it failed
+//		 */
+//		debug(LOG_DEBUG, "Level %d: Resolving auth server [%s] failed", level,
+//				hostname);
+//
+//		for (popular_server = config->popular_servers; popular_server;
+//				popular_server = popular_server->next) {
+//			debug(LOG_DEBUG, "Level %d: Resolving popular server [%s]", level,
+//					popular_server->hostname);
+//			h_addr = wd_gethostbyname(popular_server->hostname);
+//			if (h_addr) {
+//				debug(LOG_DEBUG,
+//						"Level %d: Resolving popular server [%s] succeeded = [%s]",
+//						level, popular_server->hostname, inet_ntoa(*h_addr));
+//				break;
+//			} else {
+//				debug(LOG_DEBUG,
+//						"Level %d: Resolving popular server [%s] failed", level,
+//						popular_server->hostname);
+//			}
+//		}
+//
+//		/*
+//		 * If we got any h_addr buffer for one of the popular servers, in other
+//		 * words, if one of the popular servers resolved, we'll assume the DNS
+//		 * works, otherwise we'll deal with net connection or DNS failure.
+//		 */
+//		if (h_addr) {
+//			free(h_addr);
+//			/*
+//			 * Yes
+//			 *
+//			 * The auth server's DNS server is probably dead. Try the next auth server
+//			 */
+//			debug(LOG_DEBUG,
+//					"Level %d: Marking auth server [%s] as bad and trying next if possible",
+//					level, hostname);
+//			if (auth_server->last_ip) {
+//				free(auth_server->last_ip);
+//				auth_server->last_ip = NULL;
+//			}
+//			mark_auth_server_bad(auth_server);
+//			return is_auth_server_online(level);
+//		} else {
+//			/*
+//			 * No
+//			 *
+//			 * It's probably safe to assume that the internet connection is malfunctioning
+//			 * and nothing we can do will make it work
+//			 */
+//			debug(LOG_DEBUG,
+//					"Level %d: Failed to resolve auth server and all popular servers. "
+//							"The internet connection is probably down", level);
+//			return (0);
+//		}
+//	} else {
+//		/*
+//		 * DNS resolving was successful
+//		 */
+//		ip = safe_strdup(inet_ntoa(*h_addr));
+//		debug(LOG_DEBUG,
+//				"Level %d: Resolving auth server [%s] succeeded = [%s]", level,
+//				hostname, ip);
+//
+//		if (!auth_server->last_ip || strcmp(auth_server->last_ip, ip) != 0) {
+//			/*
+//			 * But the IP address is different from the last one we knew
+//			 * Update it
+//			 */
+//			debug(LOG_DEBUG,
+//					"Level %d: Updating last_ip IP of server [%s] to [%s]",
+//					level, hostname, ip);
+//			if (auth_server->last_ip)
+//				free(auth_server->last_ip);
+//			auth_server->last_ip = ip;
+//
+//			/* Update firewall rules */
+//			fw_clear_authservers();
+//			fw_set_authservers();
+//		} else {
+//			/*
+//			 * IP is the same as last time
+//			 */
+//			free(ip);
+//		}
+//		return (1);
+//	}
+//}
+//
+//
+
 /**@internal
  * Main execution loop 
  */
@@ -367,8 +508,8 @@ main_loop(void)
     }
 
 	/* save the pid file if needed */
-    if ((!config) && (!config->pidfile))
-        save_pid_file(config->pidfile);
+//    if ((!config) && (!config->pidfile))
+//        save_pid_file(config->pidfile);
 
     /* If we don't have the Gateway IP address, get it. Can't fail. */
     if (!config->gw_address) {
@@ -405,7 +546,7 @@ main_loop(void)
 //    httpdAddCContent(webserver, "/wifidog", "about", 0, NULL, http_callback_about);
     httpdAddCContent(webserver, "/wifidog", "status", 0, NULL, http_callback_status);
 //    httpdAddCContent(webserver, "/wifidog", "auth", 0, NULL, http_callback_auth);
-    httpdAddCContent(webserver, "/wifidog", "auth", 0, NULL, http_callback_auth_null);
+//    httpdAddCContent(webserver, "/wifidog", "auth", 0, NULL, http_callback_auth_null);
 //    httpdAddCContent(webserver, "/wifidog", "disconnect", 0, NULL, http_callback_disconnect);
     httpdAddCContent(webserver, "/wifidog", "release", 0, NULL, http_callback_release);
     httpdAddCContent(webserver, "/wifidog", "allow", 0, NULL, http_callback_allow_redirect);
@@ -420,13 +561,6 @@ main_loop(void)
         exit(1);
     }
 
-    /* Start clean up thread */
-//    result = pthread_create(&tid_fw_counter, NULL, (void *)thread_client_timeout_check, NULL);
-//    if (result != 0) {
-//        debug(LOG_ERR, "FATAL: Failed to create a new thread (fw_counter) - exiting");
-//        termination_handler(0);
-//    }
-//    pthread_detach(tid_fw_counter);
 
     /* Start control thread */
     result = pthread_create(&tid, NULL, (void *)thread_wdctl, (void *)safe_strdup(config->wdctl_sock));
@@ -436,13 +570,6 @@ main_loop(void)
     }
     pthread_detach(tid);
 
-    /* Start heartbeat thread */
-//    result = pthread_create(&tid_ping, NULL, (void *)thread_ping, NULL);
-//    if (result != 0) {
-//        debug(LOG_ERR, "FATAL: Failed to create a new thread (ping) - exiting");
-//        termination_handler(0);
-//    }
-//    pthread_detach(tid_ping);
 
     debug(LOG_NOTICE, "Waiting for connections");
     while (1) {
@@ -494,8 +621,7 @@ main_loop(void)
 }
 
 /** Reads the configuration file and then starts the main loop */
-int
-gw_main(int argc, char **argv)
+int  gw_main(int argc, char **argv)
 {
 
     s_config *config = config_get_config();

@@ -250,7 +250,7 @@ iptables_fw_init(void)
     t_trusted_mac *p;
     int proxy_port;
     fw_quiet = 0;
-    int got_authdown_ruleset = NULL == get_ruleset(FWRULESET_AUTH_IS_DOWN) ? 0 : 1;
+    int got_authdown_ruleset = 0;//NULL == get_ruleset(FWRULESET_AUTH_IS_DOWN) ? 0 : 1;
 
     LOCK_CONFIG();
     config = config_get_config();
@@ -410,7 +410,7 @@ iptables_fw_init(void)
 int
 iptables_fw_destroy(void)
 {
-    int got_authdown_ruleset = NULL == get_ruleset(FWRULESET_AUTH_IS_DOWN) ? 0 : 1;
+    int got_authdown_ruleset = 0;//NULL == get_ruleset(FWRULESET_AUTH_IS_DOWN) ? 0 : 1;
     fw_quiet = 1;
 
     debug(LOG_DEBUG, "Destroying our iptables entries");

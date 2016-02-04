@@ -48,116 +48,118 @@
 #include "../config.h"
 
 /* XXX Do these need to be locked ? */
-static time_t last_online_time = 0;
-static time_t last_offline_time = 0;
-static time_t last_auth_online_time = 0;
-static time_t last_auth_offline_time = 0;
+//static time_t last_online_time = 0;
+//static time_t last_offline_time = 0;
+//static time_t last_auth_online_time = 0;
+//static time_t last_auth_offline_time = 0;
 
 long served_this_session = 0;
 
-void
-mark_online()
-{
-    int before;
-    int after;
-
-    before = is_online();
-    time(&last_online_time);
-    after = is_online();        /* XXX is_online() looks at last_online_time... */
-
-    if (before != after) {
-        debug(LOG_INFO, "ONLINE status became %s", (after ? "ON" : "OFF"));
-    }
-
-}
-
-void
-mark_offline()
-{
-    int before;
-    int after;
-
-    before = is_online();
-    time(&last_offline_time);
-    after = is_online();
-
-    if (before != after) {
-        debug(LOG_INFO, "ONLINE status became %s", (after ? "ON" : "OFF"));
-    }
-
-    /* If we're offline it definately means the auth server is offline */
-    mark_auth_offline();
-
-}
-
-int
-is_online()
-{
-    if (last_online_time == 0 || (last_offline_time - last_online_time) >= (config_get_config()->checkinterval * 2)) {
-        /* We're probably offline */
-        return (0);
-    } else {
-        /* We're probably online */
-        return (1);
-    }
-}
-
-void
-mark_auth_online()
-{
-    int before;
-    int after;
-    printf("=======\n mark_auth_online \n=====\n");
-    before = is_auth_online();
-    time(&last_auth_online_time);
-    after = is_auth_online();
-
-    if (before != after) {
-        debug(LOG_INFO, "AUTH_ONLINE status became %s", (after ? "ON" : "OFF"));
-    }
-
-    /* If auth server is online it means we're definately online */
-    mark_online();
-
-}
-
-void
-mark_auth_offline()
-{
-    int before;
-    int after;
-    printf("=======\n mark_auth_offline \n=====\n");
-    before = is_auth_online();
-    time(&last_auth_offline_time);
-    after = is_auth_online();
-
-    if (before != after) {
-        debug(LOG_INFO, "AUTH_ONLINE status became %s", (after ? "ON" : "OFF"));
-    }
-
-}
-
-int
-is_auth_online()
-{
-    if (!is_online()) {
-        /* If we're not online auth is definately not online :) */
-    	printf("=======\n is_auth_online FALSE 1\n=====\n");
-        return (0);
-    } else if (last_auth_online_time == 0
-               || (last_auth_offline_time - last_auth_online_time) >= (config_get_config()->checkinterval * 2)) {
-        /* Auth is  probably offline */
-    	printf("=======\n is_auth_online FALSE 2\n=====\n");
-        return (0);
-    } else {
-        /* Auth is probably online */
-        return (1);
-    }
-}
+//void
+//mark_online()
+//{
+//    int before;
+//    int after;
+//
+//    before = is_online();
+//    time(&last_online_time);
+//    after = is_online();        /* XXX is_online() looks at last_online_time... */
+//
+//    if (before != after) {
+//        debug(LOG_INFO, "ONLINE status became %s", (after ? "ON" : "OFF"));
+//    }
+//
+//}
+//
+//void
+//mark_offline()
+//{
+//    int before;
+//    int after;
+//
+//    before = is_online();
+//    time(&last_offline_time);
+//    after = is_online();
+//
+//    if (before != after) {
+//        debug(LOG_INFO, "ONLINE status became %s", (after ? "ON" : "OFF"));
+//    }
+//
+//    /* If we're offline it definately means the auth server is offline */
+//    mark_auth_offline();
+//
+//}
+//
+//int
+//is_online()
+//{
+//    if (last_online_time == 0 || (last_offline_time - last_online_time) >= (config_get_config()->checkinterval * 2)) {
+//        /* We're probably offline */
+//        return (0);
+//    } else {
+//        /* We're probably online */
+//        return (1);
+//    }
+//}
+//
+//void
+//mark_auth_online()
+//{
+//    int before;
+//    int after;
+//    printf("=======\n mark_auth_online \n=====\n");
+//    before = is_auth_online();
+//    time(&last_auth_online_time);
+//    after = is_auth_online();
+//
+//    if (before != after) {
+//        debug(LOG_INFO, "AUTH_ONLINE status became %s", (after ? "ON" : "OFF"));
+//    }
+//
+//    /* If auth server is online it means we're definately online */
+//    mark_online();
+//
+//}
+//
+//void
+//mark_auth_offline()
+//{
+//    int before;
+//    int after;
+//    printf("=======\n mark_auth_offline \n=====\n");
+//    before = is_auth_online();
+//    time(&last_auth_offline_time);
+//    after = is_auth_online();
+//
+//    if (before != after) {
+//        debug(LOG_INFO, "AUTH_ONLINE status became %s", (after ? "ON" : "OFF"));
+//    }
+//
+//}
+//
+//int
+//is_auth_online()
+//{
+//    if (!is_online()) {
+//        /* If we're not online auth is definately not online :) */
+//    	printf("=======\n is_auth_online FALSE 1\n=====\n");
+//        return (0);
+//    } else if (last_auth_online_time == 0
+//               || (last_auth_offline_time - last_auth_online_time) >= (config_get_config()->checkinterval * 2)) {
+//        /* Auth is  probably offline */
+//    	printf("=======\n is_auth_online FALSE 2\n=====\n");
+//        return (0);
+//    } else {
+//        /* Auth is probably online */
+//        return (1);
+//    }
+//}
 
         /*
          * @return A string containing human-readable status text. MUST BE free()d by caller
          */
+
+/*
 char *
 get_status_text()
 {
@@ -240,3 +242,91 @@ get_status_text()
 
     return pstr_to_string(pstr);
 }
+*/
+
+
+
+
+char *
+get_status_text()
+{
+    pstr_t *pstr = pstr_new();
+    s_config *config;
+    t_auth_serv *auth_server;
+    t_client *sublist, *current;
+    int count;
+    time_t uptime = 0;
+    unsigned int days = 0, hours = 0, minutes = 0, seconds = 0;
+    t_trusted_mac *p;
+
+    pstr_cat(pstr, "{\"title\":\"WiFiDog status\",");
+
+    uptime = time(NULL) - started_time;
+    days = (unsigned int)uptime / (24 * 60 * 60);
+    uptime -= days * (24 * 60 * 60);
+    hours = (unsigned int)uptime / (60 * 60);
+    uptime -= hours * (60 * 60);
+    minutes = (unsigned int)uptime / 60;
+    uptime -= minutes * 60;
+    seconds = (unsigned int)uptime;
+
+    pstr_cat(pstr, "\"Version\":\"" VERSION "\",");
+    pstr_append_sprintf(pstr, "\"Uptime\":\" %ud %uh %um %us\",", days, hours, minutes, seconds);
+    pstr_cat(pstr, "\"Has-been-restarted\":");
+
+    if (restart_orig_pid) {
+        pstr_append_sprintf(pstr, "\"yes (from PID %d)\",", restart_orig_pid);
+    } else {
+        pstr_cat(pstr, "\"no\",");
+    }
+
+    pstr_append_sprintf(pstr, "\"Internet-Connectivity\":\"%s\",", "yes" /*(is_online()? "yes" : "no")*/);
+    pstr_append_sprintf(pstr, "\"Auth-server-reachable\":\"%s\",", "yes" /*(is_auth_online()? "yes" : "no")*/);
+    pstr_append_sprintf(pstr, "\"Clients-served-this-session\":\"%lu\",", served_this_session);
+
+    LOCK_CLIENT_LIST();
+
+    count = client_list_dup(&sublist);
+
+    UNLOCK_CLIENT_LIST();
+
+    current = sublist;
+
+    pstr_append_sprintf(pstr, "\"clients-counter\":%d,", count);
+
+    count = 1;
+    while (current != NULL) {
+        pstr_append_sprintf(pstr, "\"Client-%d\":\"", count);
+        pstr_append_sprintf(pstr, "IP: %s MAC: %s\",", current->ip, current->mac);
+
+        count++;
+        current = current->next;
+    }
+
+    client_list_destroy(sublist);
+
+    config = config_get_config();
+
+    if (config->trustedmaclist != NULL) {
+        pstr_cat(pstr, "\nTrusted MAC addresses:\n");
+
+        for (p = config->trustedmaclist; p != NULL; p = p->next) {
+            pstr_append_sprintf(pstr, "  %s\n", p->mac);
+        }
+    }
+
+    pstr_cat(pstr, "\nAuthentication servers:\n");
+
+    LOCK_CONFIG();
+
+    for (auth_server = config->auth_servers; auth_server != NULL; auth_server = auth_server->next) {
+        pstr_append_sprintf(pstr, "  Host: %s (%s)\n", auth_server->authserv_hostname, auth_server->last_ip);
+    }
+
+    UNLOCK_CONFIG();
+
+    return pstr_to_string(pstr);
+}
+
+
+
