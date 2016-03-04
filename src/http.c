@@ -179,7 +179,7 @@ http_send_redirect(request * r, const char *url, const char *text)
 
 static int allow_client(httpd * webserver, request * r)
 {
-//	printf("=== \nFunction: allow_client \n=====\n");
+	debug(LOG_DEBUG,"Function: allow_client");
     t_client *client, *tmp;
     s_config *config = NULL;
     char *mac;
@@ -188,7 +188,7 @@ static int allow_client(httpd * webserver, request * r)
         /* We could not get their MAC address */
         debug(LOG_ERR, "Failed to retrieve MAC address for ip %s", r->clientAddr);
         send_http_page(r, "WiFiDog Error", "Failed to retrieve your MAC address");
-        printf("====\n MAC UNDEFIND \n====\n");
+        debug(LOG_ERR, "==== MAC UNDEFIND ====\n");
         return -1;
     }
 
@@ -227,16 +227,18 @@ static int allow_client(httpd * webserver, request * r)
 
 void http_callback_release(httpd * webserver, request * r)
 {
-//	printf("=== \nFunction: http_callback_release \n=====\n");
+	debug(LOG_INFO,"Function: http_callback_release");
+
 	if (allow_client(webserver, r) == 0)
         httpdOutput(r, "OK.");
 
     return;
 }
 
+
 void http_callback_allow_redirect(httpd * webserver, request * r)
 {
-//	printf("=== \nFunction: http_callback_allow_redirect \n=====\n");
+	debug(LOG_INFO, "Function: http_callback_allow_redirect");
 	char url[HTTP_MAX_URL],
 	     *ptr = NULL,
 	     *ops = NULL;
@@ -289,7 +291,6 @@ void http_callback_allow_redirect(httpd * webserver, request * r)
 
 void http_callback_auth_null(httpd * webserver, request * r)
 {
-	printf("=== \nFunction: http_callback_auth_null \n=====\n");
 	return;
 }
 
@@ -300,43 +301,7 @@ void http_callback_auth(httpd * webserver, request * r)
 
 void http_callback_disconnect(httpd * webserver, request * r)
 {
-//    const s_config *config = config_get_config();
-//    /* XXX How do you change the status code for the response?? */
-//    httpVar *token = httpdGetVariableByName(r, "token");
-//    httpVar *mac = httpdGetVariableByName(r, "mac");
-//
-//    if (config->httpdusername &&
-//        (strcmp(config->httpdusername, r->request.authUser) ||
-//         strcmp(config->httpdpassword, r->request.authPassword))) {
-//        debug(LOG_INFO, "Disconnect requested, forcing authentication");
-//        httpdForceAuthenticate(r, config->httpdrealm);
-//        return;
-//    }
-//
-//    if (token && mac) {
-//        t_client *client;
-//
-//        LOCK_CLIENT_LIST();
-//        client = client_list_find_by_mac(mac->value);
-//
-//        if (!client || strcmp(client->token, token->value)) {
-//            UNLOCK_CLIENT_LIST();
-//            debug(LOG_INFO, "Disconnect %s with incorrect token %s", mac->value, token->value);
-//            httpdOutput(r, "Invalid token for MAC");
-//            return;
-//        }
-//
-//        /* TODO: get current firewall counters */
-//        logout_client(client);
-//        UNLOCK_CLIENT_LIST();
-//
-//    } else {
-//        debug(LOG_INFO, "Disconnect called without both token and MAC given");
-//        httpdOutput(r, "Both the token and MAC need to be specified");
-//        return;
-//    }
 
-    return;
 }
 
 

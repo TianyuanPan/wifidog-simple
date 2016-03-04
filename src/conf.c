@@ -31,7 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <syslog.h>
-
+#include <netdb.h>
 #include <pthread.h>
 
 #include <string.h>
@@ -1070,3 +1070,31 @@ mark_auth_server_bad(t_auth_serv * bad_server)
     }
 
 }
+
+
+
+void set_auth_svr_lastip(s_config *conf)
+{
+	t_auth_serv *ptr;
+
+	struct in_addr *h_addr;
+
+	LOCK_CONFIG();
+
+	for (ptr = conf->auth_servers; ptr; ptr = ptr->next ){
+		h_addr = wd_gethostbyname(ptr->authserv_hostname);
+		if(h_addr){
+			if(ptr->last_ip){
+				free(ptr->last_ip);
+				ptr->last_ip = NULL;
+			}
+			ptr->last_ip = safe_strdup(inet_ntoa(*h_addr));
+			free(h_addr);
+			continue;
+		}
+	}
+
+	UNLOCK_CONFIG();
+
+}
+

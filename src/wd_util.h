@@ -31,22 +31,22 @@
 extern long served_this_session;
 
 /** @brief Sets hint that an online action (dns/connect/etc using WAN) succeeded */
-void mark_online(void);
+//void mark_online(void);
 
 /** @brief Sets hint that an online action (dns/connect/etc using WAN) failed */
-void mark_offline(void);
+//void mark_offline(void);
 
 /** @brief Returns a guess (true or false) on whether we're online or not based on previous calls to mark_online and mark_offline */
-int is_online(void);
+//int is_online(void);
 
 /** @brief Sets hint that an auth server online action succeeded */
-void mark_auth_online(void);
+//void mark_auth_online(void);
 
 /** @brief Sets hint that an auth server online action failed */
-void mark_auth_offline(void);
+//void mark_auth_offline(void);
 
 /** @brief Returns a guess (true or false) on whether we're an auth server is online or not based on previous calls to mark_auth_online and mark_auth_offline */
-int is_auth_online(void);
+//int is_auth_online(void);
 
 /** @brief Creates a human-readable paragraph of the status of wifidog */
 char *get_status_text(void);

@@ -345,146 +345,6 @@ init_signals(void)
 }
 
 
-/* Helper function called by connect_auth_server() to do the actual work including recursion
- * DO NOT CALL DIRECTLY
- @param level recursion level indicator must be 0 when not called by _connect_auth_server()
- */
-//int is_auth_server_online(int level)
-//{
-//	s_config *config = config_get_config();
-//	t_auth_serv *auth_server = NULL;
-//	t_popular_server *popular_server = NULL;
-//	struct in_addr *h_addr;
-//	int num_servers = 0;
-//	char *hostname = NULL;
-//	char *ip;
-//
-//	/* If there are no auth servers, error out, from scan-build warning. */
-//	if (NULL == config->auth_servers) {
-//		return (0);
-//	}
-//
-//	/* XXX level starts out at 0 and gets incremented by every iterations. */
-//	level++;
-//
-//	/*
-//	 * Let's calculate the number of servers we have
-//	 */
-//	for (auth_server = config->auth_servers; auth_server; auth_server =
-//			auth_server->next) {
-//		num_servers++;
-//	}
-//	debug(LOG_DEBUG, "Level %d: Calculated %d auth servers in list", level,
-//			num_servers);
-//
-//	if (level > num_servers) {
-//		/*
-//		 * We've called ourselves too many times
-//		 * This means we've cycled through all the servers in the server list
-//		 * at least once and none are accessible
-//		 */
-//		return (0);
-//	}
-//
-//	/*
-//	 * Let's resolve the hostname of the top server to an IP address
-//	 */
-//	auth_server = config->auth_servers;
-//	hostname = auth_server->authserv_hostname;
-//	debug(LOG_DEBUG, "Level %d: Resolving auth server [%s]", level, hostname);
-//	h_addr = wd_gethostbyname(hostname);
-//	if (!h_addr) {
-//		/*
-//		 * DNS resolving it failed
-//		 */
-//		debug(LOG_DEBUG, "Level %d: Resolving auth server [%s] failed", level,
-//				hostname);
-//
-//		for (popular_server = config->popular_servers; popular_server;
-//				popular_server = popular_server->next) {
-//			debug(LOG_DEBUG, "Level %d: Resolving popular server [%s]", level,
-//					popular_server->hostname);
-//			h_addr = wd_gethostbyname(popular_server->hostname);
-//			if (h_addr) {
-//				debug(LOG_DEBUG,
-//						"Level %d: Resolving popular server [%s] succeeded = [%s]",
-//						level, popular_server->hostname, inet_ntoa(*h_addr));
-//				break;
-//			} else {
-//				debug(LOG_DEBUG,
-//						"Level %d: Resolving popular server [%s] failed", level,
-//						popular_server->hostname);
-//			}
-//		}
-//
-//		/*
-//		 * If we got any h_addr buffer for one of the popular servers, in other
-//		 * words, if one of the popular servers resolved, we'll assume the DNS
-//		 * works, otherwise we'll deal with net connection or DNS failure.
-//		 */
-//		if (h_addr) {
-//			free(h_addr);
-//			/*
-//			 * Yes
-//			 *
-//			 * The auth server's DNS server is probably dead. Try the next auth server
-//			 */
-//			debug(LOG_DEBUG,
-//					"Level %d: Marking auth server [%s] as bad and trying next if possible",
-//					level, hostname);
-//			if (auth_server->last_ip) {
-//				free(auth_server->last_ip);
-//				auth_server->last_ip = NULL;
-//			}
-//			mark_auth_server_bad(auth_server);
-//			return is_auth_server_online(level);
-//		} else {
-//			/*
-//			 * No
-//			 *
-//			 * It's probably safe to assume that the internet connection is malfunctioning
-//			 * and nothing we can do will make it work
-//			 */
-//			debug(LOG_DEBUG,
-//					"Level %d: Failed to resolve auth server and all popular servers. "
-//							"The internet connection is probably down", level);
-//			return (0);
-//		}
-//	} else {
-//		/*
-//		 * DNS resolving was successful
-//		 */
-//		ip = safe_strdup(inet_ntoa(*h_addr));
-//		debug(LOG_DEBUG,
-//				"Level %d: Resolving auth server [%s] succeeded = [%s]", level,
-//				hostname, ip);
-//
-//		if (!auth_server->last_ip || strcmp(auth_server->last_ip, ip) != 0) {
-//			/*
-//			 * But the IP address is different from the last one we knew
-//			 * Update it
-//			 */
-//			debug(LOG_DEBUG,
-//					"Level %d: Updating last_ip IP of server [%s] to [%s]",
-//					level, hostname, ip);
-//			if (auth_server->last_ip)
-//				free(auth_server->last_ip);
-//			auth_server->last_ip = ip;
-//
-//			/* Update firewall rules */
-//			fw_clear_authservers();
-//			fw_set_authservers();
-//		} else {
-//			/*
-//			 * IP is the same as last time
-//			 */
-//			free(ip);
-//		}
-//		return (1);
-//	}
-//}
-//
-//
 
 /**@internal
  * Main execution loop 
@@ -553,6 +413,9 @@ main_loop(void)
 
     httpdSetErrorFunction(webserver, 404, http_callback_404);
 
+    /* Set the auth server ip address. */
+    set_auth_svr_lastip(config);
+
     /* Reset the firewall (if WiFiDog crashed) */
     fw_destroy();
     /* Then initialize it */
@@ -560,7 +423,6 @@ main_loop(void)
         debug(LOG_ERR, "FATAL: Failed to initialize firewall");
         exit(1);
     }
-
 
     /* Start control thread */
     result = pthread_create(&tid, NULL, (void *)thread_wdctl, (void *)safe_strdup(config->wdctl_sock));

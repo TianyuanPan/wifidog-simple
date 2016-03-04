@@ -252,14 +252,11 @@ get_status_text()
 {
     pstr_t *pstr = pstr_new();
     s_config *config;
-    t_auth_serv *auth_server;
     t_client *sublist, *current;
     int count;
     time_t uptime = 0;
     unsigned int days = 0, hours = 0, minutes = 0, seconds = 0;
     t_trusted_mac *p;
-
-    pstr_cat(pstr, "{\"title\":\"WiFiDog status\",");
 
     uptime = time(NULL) - started_time;
     days = (unsigned int)uptime / (24 * 60 * 60);
@@ -270,19 +267,10 @@ get_status_text()
     uptime -= minutes * 60;
     seconds = (unsigned int)uptime;
 
-    pstr_cat(pstr, "\"Version\":\"" VERSION "\",");
-    pstr_append_sprintf(pstr, "\"Uptime\":\" %ud %uh %um %us\",", days, hours, minutes, seconds);
-    pstr_cat(pstr, "\"Has-been-restarted\":");
-
-    if (restart_orig_pid) {
-        pstr_append_sprintf(pstr, "\"yes (from PID %d)\",", restart_orig_pid);
-    } else {
-        pstr_cat(pstr, "\"no\",");
-    }
-
-    pstr_append_sprintf(pstr, "\"Internet-Connectivity\":\"%s\",", "yes" /*(is_online()? "yes" : "no")*/);
-    pstr_append_sprintf(pstr, "\"Auth-server-reachable\":\"%s\",", "yes" /*(is_auth_online()? "yes" : "no")*/);
-    pstr_append_sprintf(pstr, "\"Clients-served-this-session\":\"%lu\",", served_this_session);
+    pstr_cat(pstr, "{");
+    pstr_cat(pstr, "\"version\":\"" VERSION "\",");
+    pstr_append_sprintf(pstr, "\"uptime\":\"%ud %uh %um %us\",", days, hours, minutes, seconds);
+    pstr_append_sprintf(pstr, "\"clients_served_session\":\"%lu\",", served_this_session);
 
     LOCK_CLIENT_LIST();
 
@@ -292,36 +280,34 @@ get_status_text()
 
     current = sublist;
 
-    pstr_append_sprintf(pstr, "\"clients-counter\":%d,", count);
-
-    count = 1;
+    count = 0;
+    pstr_cat(pstr, "\"clients\":[");
     while (current != NULL) {
-        pstr_append_sprintf(pstr, "\"Client-%d\":\"", count);
-        pstr_append_sprintf(pstr, "IP: %s MAC: %s\",", current->ip, current->mac);
-
+        pstr_append_sprintf(pstr, "\"%s\"", current->mac);
         count++;
         current = current->next;
+        if (current != NULL)
+        	pstr_cat(pstr, ",");
     }
+    pstr_cat(pstr, "],");
+
+    pstr_append_sprintf(pstr, "\"client_counter\":%d,", count);
 
     client_list_destroy(sublist);
 
     config = config_get_config();
 
-    if (config->trustedmaclist != NULL) {
-        pstr_cat(pstr, "\nTrusted MAC addresses:\n");
-
-        for (p = config->trustedmaclist; p != NULL; p = p->next) {
-            pstr_append_sprintf(pstr, "  %s\n", p->mac);
-        }
-    }
-
-    pstr_cat(pstr, "\nAuthentication servers:\n");
+    pstr_cat(pstr, "\"authentication_server\":{");
 
     LOCK_CONFIG();
 
-    for (auth_server = config->auth_servers; auth_server != NULL; auth_server = auth_server->next) {
-        pstr_append_sprintf(pstr, "  Host: %s (%s)\n", auth_server->authserv_hostname, auth_server->last_ip);
-    }
+    if (config->auth_servers != NULL)
+        pstr_append_sprintf(pstr, "\"host\":\"%s\",\"ip\":\"%s\"}}",
+        		             config->auth_servers->authserv_hostname,
+        		             config->auth_servers->last_ip
+        		            );
+    else
+    	pstr_cat(pstr, "}}");
 
     UNLOCK_CONFIG();
 
