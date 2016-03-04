@@ -114,7 +114,7 @@ iptables_do_command(const char *format, ...)
         if (fw_quiet == 0)
             debug(LOG_ERR, "iptables command failed(%d): %s", rc, cmd);
         else if (fw_quiet == 1)
-            debug(LOG_DEBUG, "iptables command failed(%d): %s", rc, cmd);
+            debug(LOG_ERR, "iptables command failed(%d): %s", rc, cmd);
     }
 
     free(cmd);
@@ -250,7 +250,7 @@ iptables_fw_init(void)
     t_trusted_mac *p;
     int proxy_port;
     fw_quiet = 0;
-    int got_authdown_ruleset = NULL == get_ruleset(FWRULESET_AUTH_IS_DOWN) ? 0 : 1;
+    int got_authdown_ruleset = 0;//NULL == get_ruleset(FWRULESET_AUTH_IS_DOWN) ? 0 : 1;
 
     LOCK_CONFIG();
     config = config_get_config();
@@ -276,14 +276,17 @@ iptables_fw_init(void)
     iptables_do_command("-t mangle -N " CHAIN_TRUSTED);
     iptables_do_command("-t mangle -N " CHAIN_OUTGOING);
     iptables_do_command("-t mangle -N " CHAIN_INCOMING);
+
     if (got_authdown_ruleset)
         iptables_do_command("-t mangle -N " CHAIN_AUTH_IS_DOWN);
 
     /* Assign links and rules to these new chains */
     iptables_do_command("-t mangle -I PREROUTING 1 -i %s -j " CHAIN_OUTGOING, config->gw_interface);
     iptables_do_command("-t mangle -I PREROUTING 1 -i %s -j " CHAIN_TRUSTED, config->gw_interface);     //this rule will be inserted before the prior one
+
     if (got_authdown_ruleset)
         iptables_do_command("-t mangle -I PREROUTING 1 -i %s -j " CHAIN_AUTH_IS_DOWN, config->gw_interface);    //this rule must be last in the chain
+
     iptables_do_command("-t mangle -I POSTROUTING 1 -o %s -j " CHAIN_INCOMING, config->gw_interface);
 
     for (p = config->trustedmaclist; p != NULL; p = p->next)
@@ -303,6 +306,7 @@ iptables_fw_init(void)
     iptables_do_command("-t nat -N " CHAIN_GLOBAL);
     iptables_do_command("-t nat -N " CHAIN_UNKNOWN);
     iptables_do_command("-t nat -N " CHAIN_AUTHSERVERS);
+
     if (got_authdown_ruleset)
         iptables_do_command("-t nat -N " CHAIN_AUTH_IS_DOWN);
 
@@ -311,7 +315,6 @@ iptables_fw_init(void)
 
     iptables_do_command("-t nat -A " CHAIN_OUTGOING " -d %s -j " CHAIN_TO_ROUTER, config->gw_address);
     iptables_do_command("-t nat -A " CHAIN_TO_ROUTER " -j ACCEPT");
-
     iptables_do_command("-t nat -A " CHAIN_OUTGOING " -j " CHAIN_TO_INTERNET);
 
     if ((proxy_port = config_get_config()->proxy_port) != 0) {
@@ -330,10 +333,12 @@ iptables_fw_init(void)
 
     iptables_do_command("-t nat -A " CHAIN_UNKNOWN " -j " CHAIN_AUTHSERVERS);
     iptables_do_command("-t nat -A " CHAIN_UNKNOWN " -j " CHAIN_GLOBAL);
+
     if (got_authdown_ruleset) {
         iptables_do_command("-t nat -A " CHAIN_UNKNOWN " -j " CHAIN_AUTH_IS_DOWN);
         iptables_do_command("-t nat -A " CHAIN_AUTH_IS_DOWN " -m mark --mark 0x%u -j ACCEPT", FW_MARK_AUTH_IS_DOWN);
     }
+
     iptables_do_command("-t nat -A " CHAIN_UNKNOWN " -p tcp --dport 80 -j REDIRECT --to-ports %d", gw_port);
 
     /*
@@ -350,6 +355,7 @@ iptables_fw_init(void)
     iptables_do_command("-t filter -N " CHAIN_VALIDATE);
     iptables_do_command("-t filter -N " CHAIN_KNOWN);
     iptables_do_command("-t filter -N " CHAIN_UNKNOWN);
+
     if (got_authdown_ruleset)
         iptables_do_command("-t filter -N " CHAIN_AUTH_IS_DOWN);
 
@@ -410,7 +416,7 @@ iptables_fw_init(void)
 int
 iptables_fw_destroy(void)
 {
-    int got_authdown_ruleset = NULL == get_ruleset(FWRULESET_AUTH_IS_DOWN) ? 0 : 1;
+    int got_authdown_ruleset = 0;//NULL == get_ruleset(FWRULESET_AUTH_IS_DOWN) ? 0 : 1;
     fw_quiet = 1;
 
     debug(LOG_DEBUG, "Destroying our iptables entries");
@@ -423,18 +429,24 @@ iptables_fw_destroy(void)
     debug(LOG_DEBUG, "Destroying chains in the MANGLE table");
     iptables_fw_destroy_mention("mangle", "PREROUTING", CHAIN_TRUSTED);
     iptables_fw_destroy_mention("mangle", "PREROUTING", CHAIN_OUTGOING);
+
     if (got_authdown_ruleset)
         iptables_fw_destroy_mention("mangle", "PREROUTING", CHAIN_AUTH_IS_DOWN);
+
     iptables_fw_destroy_mention("mangle", "POSTROUTING", CHAIN_INCOMING);
     iptables_do_command("-t mangle -F " CHAIN_TRUSTED);
     iptables_do_command("-t mangle -F " CHAIN_OUTGOING);
+
     if (got_authdown_ruleset)
         iptables_do_command("-t mangle -F " CHAIN_AUTH_IS_DOWN);
+
     iptables_do_command("-t mangle -F " CHAIN_INCOMING);
     iptables_do_command("-t mangle -X " CHAIN_TRUSTED);
     iptables_do_command("-t mangle -X " CHAIN_OUTGOING);
+
     if (got_authdown_ruleset)
         iptables_do_command("-t mangle -X " CHAIN_AUTH_IS_DOWN);
+
     iptables_do_command("-t mangle -X " CHAIN_INCOMING);
 
     /*
@@ -446,16 +458,20 @@ iptables_fw_destroy(void)
     iptables_fw_destroy_mention("nat", "PREROUTING", CHAIN_OUTGOING);
     iptables_do_command("-t nat -F " CHAIN_AUTHSERVERS);
     iptables_do_command("-t nat -F " CHAIN_OUTGOING);
+
     if (got_authdown_ruleset)
         iptables_do_command("-t nat -F " CHAIN_AUTH_IS_DOWN);
+
     iptables_do_command("-t nat -F " CHAIN_TO_ROUTER);
     iptables_do_command("-t nat -F " CHAIN_TO_INTERNET);
     iptables_do_command("-t nat -F " CHAIN_GLOBAL);
     iptables_do_command("-t nat -F " CHAIN_UNKNOWN);
     iptables_do_command("-t nat -X " CHAIN_AUTHSERVERS);
     iptables_do_command("-t nat -X " CHAIN_OUTGOING);
+
     if (got_authdown_ruleset)
         iptables_do_command("-t nat -X " CHAIN_AUTH_IS_DOWN);
+
     iptables_do_command("-t nat -X " CHAIN_TO_ROUTER);
     iptables_do_command("-t nat -X " CHAIN_TO_INTERNET);
     iptables_do_command("-t nat -X " CHAIN_GLOBAL);
@@ -475,8 +491,10 @@ iptables_fw_destroy(void)
     iptables_do_command("-t filter -F " CHAIN_VALIDATE);
     iptables_do_command("-t filter -F " CHAIN_KNOWN);
     iptables_do_command("-t filter -F " CHAIN_UNKNOWN);
+
     if (got_authdown_ruleset)
         iptables_do_command("-t filter -F " CHAIN_AUTH_IS_DOWN);
+
     iptables_do_command("-t filter -X " CHAIN_TO_INTERNET);
     iptables_do_command("-t filter -X " CHAIN_AUTHSERVERS);
     iptables_do_command("-t filter -X " CHAIN_LOCKED);
@@ -484,6 +502,7 @@ iptables_fw_destroy(void)
     iptables_do_command("-t filter -X " CHAIN_VALIDATE);
     iptables_do_command("-t filter -X " CHAIN_KNOWN);
     iptables_do_command("-t filter -X " CHAIN_UNKNOWN);
+
     if (got_authdown_ruleset)
         iptables_do_command("-t filter -X " CHAIN_AUTH_IS_DOWN);
 

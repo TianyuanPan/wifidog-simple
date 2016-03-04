@@ -52,11 +52,9 @@
 #include "gateway.h"
 #include "firewall.h"
 #include "commandline.h"
-#include "auth.h"
 #include "http.h"
 #include "client_list.h"
 #include "wdctl_thread.h"
-#include "ping_thread.h"
 #include "httpd_thread.h"
 #include "util.h"
 
@@ -64,8 +62,8 @@
  * We need to remember the thread IDs of threads that simulate wait with pthread_cond_timedwait
  * so we can explicitly kill them in the termination handler
  */
-static pthread_t tid_fw_counter = 0;
-static pthread_t tid_ping = 0;
+//static pthread_t tid_fw_counter = 0;
+//static pthread_t tid_ping = 0;
 
 time_t started_time = 0;
 
@@ -279,14 +277,15 @@ termination_handler(int s)
      * termination handler) from happening so we need to explicitly kill the threads 
      * that use that
      */
-    if (tid_fw_counter && self != tid_fw_counter) {
-        debug(LOG_INFO, "Explicitly killing the fw_counter thread");
-        pthread_kill(tid_fw_counter, SIGKILL);
-    }
-    if (tid_ping && self != tid_ping) {
-        debug(LOG_INFO, "Explicitly killing the ping thread");
-        pthread_kill(tid_ping, SIGKILL);
-    }
+
+//    if (tid_fw_counter && self != tid_fw_counter) {
+//        debug(LOG_INFO, "Explicitly killing the fw_counter thread");
+//        pthread_kill(tid_fw_counter, SIGKILL);
+//    }
+//    if (tid_ping && self != tid_ping) {
+//        debug(LOG_INFO, "Explicitly killing the ping thread");
+//        pthread_kill(tid_ping, SIGKILL);
+//    }
 
     debug(LOG_NOTICE, "Exiting...");
     exit(s == 0 ? 1 : 0);
@@ -345,6 +344,8 @@ init_signals(void)
     }
 }
 
+
+
 /**@internal
  * Main execution loop 
  */
@@ -367,8 +368,8 @@ main_loop(void)
     }
 
 	/* save the pid file if needed */
-    if ((!config) && (!config->pidfile))
-        save_pid_file(config->pidfile);
+//    if ((!config) && (!config->pidfile))
+//        save_pid_file(config->pidfile);
 
     /* If we don't have the Gateway IP address, get it. Can't fail. */
     if (!config->gw_address) {
@@ -405,12 +406,15 @@ main_loop(void)
 //    httpdAddCContent(webserver, "/wifidog", "about", 0, NULL, http_callback_about);
     httpdAddCContent(webserver, "/wifidog", "status", 0, NULL, http_callback_status);
 //    httpdAddCContent(webserver, "/wifidog", "auth", 0, NULL, http_callback_auth);
-    httpdAddCContent(webserver, "/wifidog", "auth", 0, NULL, http_callback_auth_null);
+//    httpdAddCContent(webserver, "/wifidog", "auth", 0, NULL, http_callback_auth_null);
 //    httpdAddCContent(webserver, "/wifidog", "disconnect", 0, NULL, http_callback_disconnect);
     httpdAddCContent(webserver, "/wifidog", "release", 0, NULL, http_callback_release);
     httpdAddCContent(webserver, "/wifidog", "allow", 0, NULL, http_callback_allow_redirect);
 
     httpdSetErrorFunction(webserver, 404, http_callback_404);
+
+    /* Set the auth server ip address. */
+    set_auth_svr_lastip(config);
 
     /* Reset the firewall (if WiFiDog crashed) */
     fw_destroy();
@@ -420,14 +424,6 @@ main_loop(void)
         exit(1);
     }
 
-    /* Start clean up thread */
-//    result = pthread_create(&tid_fw_counter, NULL, (void *)thread_client_timeout_check, NULL);
-//    if (result != 0) {
-//        debug(LOG_ERR, "FATAL: Failed to create a new thread (fw_counter) - exiting");
-//        termination_handler(0);
-//    }
-//    pthread_detach(tid_fw_counter);
-
     /* Start control thread */
     result = pthread_create(&tid, NULL, (void *)thread_wdctl, (void *)safe_strdup(config->wdctl_sock));
     if (result != 0) {
@@ -436,13 +432,6 @@ main_loop(void)
     }
     pthread_detach(tid);
 
-    /* Start heartbeat thread */
-//    result = pthread_create(&tid_ping, NULL, (void *)thread_ping, NULL);
-//    if (result != 0) {
-//        debug(LOG_ERR, "FATAL: Failed to create a new thread (ping) - exiting");
-//        termination_handler(0);
-//    }
-//    pthread_detach(tid_ping);
 
     debug(LOG_NOTICE, "Waiting for connections");
     while (1) {
@@ -494,8 +483,7 @@ main_loop(void)
 }
 
 /** Reads the configuration file and then starts the main loop */
-int
-gw_main(int argc, char **argv)
+int  gw_main(int argc, char **argv)
 {
 
     s_config *config = config_get_config();

@@ -45,8 +45,6 @@
 #include "wd_util.h"
 #include "conf.h"
 #include "debug.h"
-#include "auth.h"
-#include "centralserver.h"
 #include "fw_iptables.h"
 #include "firewall.h"
 #include "client_list.h"
@@ -339,7 +337,7 @@ wdctl_restart(int afd)
         /* Child */
         close(wdctl_socket_server);
         close(sock);
-        close_icmp_socket();
+//        close_icmp_socket();
         shutdown(afd, 2);
         close(afd);
         debug(LOG_NOTICE, "Re-executing myself (%s)", restartargv[0]);
@@ -376,7 +374,11 @@ wdctl_reset(int fd, const char *arg)
     debug(LOG_DEBUG, "Got node %x.", node);
 
     /* deny.... */
-    logout_client(node);
+    //logout_client(node);
+    fw_deny(node);
+    client_list_remove(node);
+    client_free_node(node);
+
 
     UNLOCK_CLIENT_LIST();
 

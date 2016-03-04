@@ -30,4 +30,6 @@
 /** @brief Read buffer for socket read? */
 #define MAX_BUF 4096
 
+#define MINIMUM_STARTED_TIME   1041350400 // 2003.01.01 00:00:00
+
 #endif /* _COMMON_H_ */

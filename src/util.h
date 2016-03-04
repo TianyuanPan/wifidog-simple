@@ -50,15 +50,15 @@ char *get_iface_mac(const char *);
 char *get_ext_iface(void);
 
 /** @brief Initialize the ICMP socket */
-int init_icmp_socket(void);
+//int init_icmp_socket(void);
 
 /** @brief Close the ICMP socket. */
-void close_icmp_socket(void);
+//void close_icmp_socket(void);
 
 /** @brief ICMP Ping an IP */
-void icmp_ping(const char *);
+//void icmp_ping(const char *);
 
 /** @brief Save pid of this wifidog in pid file */
-void save_pid_file(const char *);
+//void save_pid_file(const char *);
 
 #endif                          /* _UTIL_H_ */

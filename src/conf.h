@@ -225,6 +225,8 @@ void mark_auth_server_bad(t_auth_serv *);
 t_firewall_rule *get_ruleset(const char *);
 
 
+void set_auth_svr_lastip(s_config *config);
+
 #define LOCK_CONFIG() do { \
 	debug(LOG_DEBUG, "Locking config"); \
 	pthread_mutex_lock(&config_mutex); \

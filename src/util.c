@@ -289,79 +289,79 @@ get_ext_iface(void)
 /** Initialize the ICMP socket
  * @return A boolean of the success
  */
-int
-init_icmp_socket(void)
-{
-    int flags, oneopt = 1, zeroopt = 0;
-
-    debug(LOG_INFO, "Creating ICMP socket");
-    if ((icmp_fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)) == -1 ||
-        (flags = fcntl(icmp_fd, F_GETFL, 0)) == -1 ||
-        fcntl(icmp_fd, F_SETFL, flags | O_NONBLOCK) == -1 ||
-        setsockopt(icmp_fd, SOL_SOCKET, SO_RCVBUF, &oneopt, sizeof(oneopt)) ||
-        setsockopt(icmp_fd, SOL_SOCKET, SO_DONTROUTE, &zeroopt, sizeof(zeroopt)) == -1) {
-        debug(LOG_ERR, "Cannot create ICMP raw socket.");
-        return 0;
-    }
-    return 1;
-}
+//int
+//init_icmp_socket(void)
+//{
+//    int flags, oneopt = 1, zeroopt = 0;
+//
+//    debug(LOG_INFO, "Creating ICMP socket");
+//    if ((icmp_fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)) == -1 ||
+//        (flags = fcntl(icmp_fd, F_GETFL, 0)) == -1 ||
+//        fcntl(icmp_fd, F_SETFL, flags | O_NONBLOCK) == -1 ||
+//        setsockopt(icmp_fd, SOL_SOCKET, SO_RCVBUF, &oneopt, sizeof(oneopt)) ||
+//        setsockopt(icmp_fd, SOL_SOCKET, SO_DONTROUTE, &zeroopt, sizeof(zeroopt)) == -1) {
+//        debug(LOG_ERR, "Cannot create ICMP raw socket.");
+//        return 0;
+//    }
+//    return 1;
+//}
 
 /** Close the ICMP socket. */
-void
-close_icmp_socket(void)
-{
-    debug(LOG_INFO, "Closing ICMP socket");
-    close(icmp_fd);
-}
+//void
+//close_icmp_socket(void)
+//{
+//    debug(LOG_INFO, "Closing ICMP socket");
+//    close(icmp_fd);
+//}
 
 /**
  * Ping an IP.
  * @param IP/host as string, will be sent to gethostbyname
  */
-void
-icmp_ping(const char *host)
-{
-    struct sockaddr_in saddr;
-    struct {
-        struct ip ip;
-        struct icmp icmp;
-    } packet;
-    unsigned int i, j;
-    int opt = 2000;
-    unsigned short id = rand16();
-
-    memset(&saddr, 0, sizeof(saddr));
-    saddr.sin_family = AF_INET;
-    inet_aton(host, &saddr.sin_addr);
-#if defined(HAVE_SOCKADDR_SA_LEN)
-    saddr.sin_len = sizeof(struct sockaddr_in);
-#endif
-
-    memset(&packet.icmp, 0, sizeof(packet.icmp));
-    packet.icmp.icmp_type = ICMP_ECHO;
-    packet.icmp.icmp_id = id;
-
-    for (j = 0, i = 0; i < sizeof(struct icmp) / 2; i++)
-        j += ((unsigned short *)&packet.icmp)[i];
-
-    while (j >> 16)
-        j = (j & 0xffff) + (j >> 16);
-
-    packet.icmp.icmp_cksum = (j == 0xffff) ? j : ~j;
-
-    if (setsockopt(icmp_fd, SOL_SOCKET, SO_RCVBUF, &opt, sizeof(opt)) == -1)
-        debug(LOG_ERR, "setsockopt(): %s", strerror(errno));
-
-    if (sendto(icmp_fd, (char *)&packet.icmp, sizeof(struct icmp), 0,
-               (const struct sockaddr *)&saddr, sizeof(saddr)) == -1)
-        debug(LOG_ERR, "sendto(): %s", strerror(errno));
-
-    opt = 1;
-    if (setsockopt(icmp_fd, SOL_SOCKET, SO_RCVBUF, &opt, sizeof(opt)) == -1)
-        debug(LOG_ERR, "setsockopt(): %s", strerror(errno));
-
-    return;
-}
+//void
+//icmp_ping(const char *host)
+//{
+//    struct sockaddr_in saddr;
+//    struct {
+//        struct ip ip;
+//        struct icmp icmp;
+//    } packet;
+//    unsigned int i, j;
+//    int opt = 2000;
+//    unsigned short id = rand16();
+//
+//    memset(&saddr, 0, sizeof(saddr));
+//    saddr.sin_family = AF_INET;
+//    inet_aton(host, &saddr.sin_addr);
+//#if defined(HAVE_SOCKADDR_SA_LEN)
+//    saddr.sin_len = sizeof(struct sockaddr_in);
+//#endif
+//
+//    memset(&packet.icmp, 0, sizeof(packet.icmp));
+//    packet.icmp.icmp_type = ICMP_ECHO;
+//    packet.icmp.icmp_id = id;
+//
+//    for (j = 0, i = 0; i < sizeof(struct icmp) / 2; i++)
+//        j += ((unsigned short *)&packet.icmp)[i];
+//
+//    while (j >> 16)
+//        j = (j & 0xffff) + (j >> 16);
+//
+//    packet.icmp.icmp_cksum = (j == 0xffff) ? j : ~j;
+//
+//    if (setsockopt(icmp_fd, SOL_SOCKET, SO_RCVBUF, &opt, sizeof(opt)) == -1)
+//        debug(LOG_ERR, "setsockopt(): %s", strerror(errno));
+//
+//    if (sendto(icmp_fd, (char *)&packet.icmp, sizeof(struct icmp), 0,
+//               (const struct sockaddr *)&saddr, sizeof(saddr)) == -1)
+//        debug(LOG_ERR, "sendto(): %s", strerror(errno));
+//
+//    opt = 1;
+//    if (setsockopt(icmp_fd, SOL_SOCKET, SO_RCVBUF, &opt, sizeof(opt)) == -1)
+//        debug(LOG_ERR, "setsockopt(): %s", strerror(errno));
+//
+//    return;
+//}
 
 /** Get a 16-bit unsigned random number.
  * @return unsigned short a random number
@@ -394,20 +394,20 @@ rand16(void)
  * Save pid of this wifidog in pid file
  * @param 'pf' as string, it is the pid file absolutely path
  */
-void
-save_pid_file(const char *pf)
-{
-    if (pf) {
-        FILE *f = fopen(pf, "w");
-        if (f) {
-            fprintf(f, "%d\n", getpid());
-
-            int ret = fclose(f);
-            if (ret == EOF) /* check the return value of fclose */
-                debug(LOG_ERR, "fclose() on file %s was failed (%s)", pf, strerror(errno));
-        } else /* fopen return NULL, open file failed */
-            debug(LOG_ERR, "fopen() on flie %s was failed (%s)", pf, strerror(errno));
-    }
-
-    return;
-}
+//void
+//save_pid_file(const char *pf)
+//{
+//    if (pf) {
+//        FILE *f = fopen(pf, "w");
+//        if (f) {
+//            fprintf(f, "%d\n", getpid());
+//
+//            int ret = fclose(f);
+//            if (ret == EOF) /* check the return value of fclose */
+//                debug(LOG_ERR, "fclose() on file %s was failed (%s)", pf, strerror(errno));
+//        } else /* fopen return NULL, open file failed */
+//            debug(LOG_ERR, "fopen() on flie %s was failed (%s)", pf, strerror(errno));
+//    }
+//
+//    return;
+//}
