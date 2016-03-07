@@ -375,11 +375,13 @@ wdctl_reset(int fd, const char *arg)
 
     /* deny.... */
     //logout_client(node);
-    fw_deny(node);
+    if ( fw_deny(node) != 0 )
+    	goto fw_deny_err;
+
     client_list_remove(node);
     client_free_node(node);
 
-
+fw_deny_err:
     UNLOCK_CLIENT_LIST();
 
     write_to_socket(fd, "Yes", 3);
