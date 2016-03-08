@@ -197,6 +197,10 @@ static int allow_client(httpd * webserver, request * r)
         if ((client = client_list_find(r->clientAddr, mac)) == NULL) {
             debug(LOG_DEBUG, "New client for %s", r->clientAddr);
             client_list_add(r->clientAddr, mac, "123456789");
+        }else{
+        	UNLOCK_CLIENT_LIST();
+        	debug(LOG_INFO, "client for %s already in list.", r->clientAddr);
+        	return 0;
         }
 
         tmp = client_list_find_by_ip(r->clientAddr);
