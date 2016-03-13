@@ -130,24 +130,6 @@ _fw_deny_raw(const char *ip, const char *mac, const int mark)
     return iptables_fw_access(FW_ACCESS_DENY, ip, mac, mark);
 }
 
-/** Passthrough for clients when auth server is down */
-int
-fw_set_authdown(void)
-{
-    debug(LOG_DEBUG, "Marking auth server down");
-
-    return iptables_fw_auth_unreachable(FW_MARK_AUTH_IS_DOWN);
-}
-
-/** Remove passthrough for clients when auth server is up */
-int
-fw_set_authup(void)
-{
-    debug(LOG_DEBUG, "Marking auth server up again");
-
-    return iptables_fw_auth_reachable();
-}
-
 /* XXX DCY */
 /**
  * Get an IP's MAC address from the ARP cache.

@@ -72,7 +72,6 @@ typedef enum {
     oGatewayInterface,
     oGatewayAddress,
     oGatewayPort,
-    oDeltaTraffic,
     oAuthServer,
     oAuthServHostname,
     oAuthServSSLAvailable,
@@ -89,8 +88,6 @@ typedef enum {
     oHTTPDRealm,
     oHTTPDUsername,
     oHTTPDPassword,
-    oClientTimeout,
-    oCheckInterval,
     oWdctlSocket,
     oSyslogFacility,
     oFirewallRule,
@@ -112,7 +109,6 @@ static const struct {
     OpCodes opcode;
 } keywords[] = {
     {
-    "deltatraffic", oDeltaTraffic}, {
     "daemon", oDaemon}, {
     "debuglevel", oDebugLevel}, {
     "externalinterface", oExternalInterface}, {
@@ -126,8 +122,6 @@ static const struct {
     "httpdrealm", oHTTPDRealm}, {
     "httpdusername", oHTTPDUsername}, {
     "httpdpassword", oHTTPDPassword}, {
-    "clienttimeout", oClientTimeout}, {
-    "checkinterval", oCheckInterval}, {
     "syslogfacility", oSyslogFacility}, {
     "wdctlsocket", oWdctlSocket}, {
     "hostname", oAuthServHostname}, {
@@ -181,7 +175,7 @@ config_init(void)
     config.configfile = safe_strdup(DEFAULT_CONFIGFILE);
     config.htmlmsgfile = safe_strdup(DEFAULT_HTMLMSGFILE);
     config.httpdmaxconn = DEFAULT_HTTPDMAXCONN;
-    config.external_interface = NULL;
+    config.external_interface = safe_strdup(DEFAULT_EXTERNAL_IFACE);
     config.gw_id = DEFAULT_GATEWAYID;
     config.gw_interface = NULL;
     config.gw_address = NULL;
@@ -191,10 +185,8 @@ config_init(void)
     config.httpdrealm = DEFAULT_HTTPDNAME;
     config.httpdusername = NULL;
     config.httpdpassword = NULL;
-    config.clienttimeout = DEFAULT_CLIENTTIMEOUT;
-    config.checkinterval = DEFAULT_CHECKINTERVAL;
     config.daemon = -1;
-    config.pidfile = NULL;
+    config.pidfile = safe_strdup(DEFAULT_PID_FILE);
     config.wdctl_sock = safe_strdup(DEFAULT_WDCTL_SOCK);
     config.internal_sock = safe_strdup(DEFAULT_INTERNAL_SOCK);
     config.rulesets = NULL;
@@ -203,7 +195,6 @@ config_init(void)
     config.proxy_port = 0;
     config.ssl_certs = safe_strdup(DEFAULT_AUTHSERVSSLCERTPATH);
     config.ssl_verify = DEFAULT_AUTHSERVSSLPEERVER;
-    config.deltatraffic = DEFAULT_DELTATRAFFIC;
     config.ssl_cipher_list = NULL;
     config.arp_table_path = safe_strdup(DEFAULT_ARPTABLE);
     config.ssl_use_sni = DEFAULT_AUTHSERVSSLSNI;
@@ -697,9 +688,6 @@ config_read(const char *filename)
                 opcode = config_parse_token(s, filename, linenum);
 
                 switch (opcode) {
-                case oDeltaTraffic:
-                    config.deltatraffic = parse_boolean_value(p1);
-                    break;
                 case oDaemon:
                     if (config.daemon == -1 && ((value = parse_boolean_value(p1)) != -1)) {
                         config.daemon = value;
@@ -711,6 +699,7 @@ config_read(const char *filename)
                     }
                     break;
                 case oExternalInterface:
+                	free(config.external_interface);
                     config.external_interface = safe_strdup(p1);
                     break;
                 case oGatewayID:
@@ -752,15 +741,9 @@ config_read(const char *filename)
                 case oHTTPDPassword:
                     config.httpdpassword = safe_strdup(p1);
                     break;
-                case oCheckInterval:
-                    sscanf(p1, "%d", &config.checkinterval);
-                    break;
                 case oWdctlSocket:
                     free(config.wdctl_sock);
                     config.wdctl_sock = safe_strdup(p1);
-                    break;
-                case oClientTimeout:
-                    sscanf(p1, "%d", &config.clienttimeout);
                     break;
                 case oSyslogFacility:
                     sscanf(p1, "%d", &debugconf.syslog_facility);
@@ -1091,10 +1074,36 @@ void set_auth_svr_lastip(s_config *conf)
 			ptr->last_ip = safe_strdup(inet_ntoa(*h_addr));
 			free(h_addr);
 			continue;
-		}
+		}else
+			ptr->last_ip = NULL;
 	}
 
 	UNLOCK_CONFIG();
 
 }
 
+void update_auth_svr_lastip(s_config *conf)
+{
+	t_auth_serv *ptr;
+	struct in_addr *h_addr;
+
+	LOCK_CONFIG();
+
+	for (ptr = conf->auth_servers; ptr; ptr = ptr->next ){
+		if(!ptr->last_ip){
+			h_addr = wd_gethostbyname(ptr->authserv_hostname);
+			if(h_addr){
+				if(ptr->last_ip){
+					free(ptr->last_ip);
+					ptr->last_ip = NULL;
+				}
+				ptr->last_ip = safe_strdup(inet_ntoa(*h_addr));
+				free(h_addr);
+				continue;
+			}else
+				ptr->last_ip = NULL;
+		}//if
+	}//for
+
+	UNLOCK_CONFIG();
+}
