@@ -114,7 +114,7 @@ iptables_do_command(const char *format, ...)
         if (fw_quiet == 0)
             debug(LOG_ERR, "iptables command failed(%d): %s", rc, cmd);
         else if (fw_quiet == 1)
-            debug(LOG_ERR, "iptables command failed(%d): %s", rc, cmd);
+            debug(LOG_DEBUG, "iptables command failed(%d): %s", rc, cmd);
     }
 
     free(cmd);
