@@ -41,3 +41,4 @@ typedef struct {
     char *param;
 } s_config;
 #endif
+

@@ -113,7 +113,7 @@ client_list_insert_client(t_client * client)
  * @return Pointer to the client we just created
  */
 t_client *
-client_list_add(const char *ip, const char *mac, const char *token)
+client_list_add(const char *ip, const char *mac)
 {
     t_client *curclient;
 
@@ -121,15 +121,10 @@ client_list_add(const char *ip, const char *mac, const char *token)
 
     curclient->ip = safe_strdup(ip);
     curclient->mac = safe_strdup(mac);
-    curclient->token = safe_strdup(token);
-    curclient->counters.incoming_delta = curclient->counters.outgoing_delta = 
-            curclient->counters.incoming = curclient->counters.incoming_history = curclient->counters.outgoing =
-        curclient->counters.outgoing_history = 0;
-    curclient->counters.last_updated = time(NULL);
 
     client_list_insert_client(curclient);
 
-    debug(LOG_INFO, "Added a new client to linked list: IP: %s Token: %s", ip, token);
+    debug(LOG_INFO, "Added a new client to linked list: IP: %s MAC: %s", ip, mac);
 
     return curclient;
 }
@@ -188,14 +183,6 @@ client_dup(const t_client * src)
     new->id = src->id;
     new->ip = safe_strdup(src->ip);
     new->mac = safe_strdup(src->mac);
-    new->token = safe_strdup(src->token);
-    new->counters.incoming = src->counters.incoming;
-    new->counters.incoming_history = src->counters.incoming_history;
-    new->counters.incoming_delta = src->counters.incoming_delta;
-    new->counters.outgoing = src->counters.outgoing;
-    new->counters.outgoing_history = src->counters.outgoing_history;
-    new->counters.outgoing_delta = src->counters.outgoing_delta;
-    new->counters.last_updated = src->counters.last_updated;
     new->next = NULL;
 
     return new;
@@ -283,18 +270,18 @@ client_list_find_by_mac(const char *mac)
     return NULL;
 }
 
-/** Finds a client by its token
+/** Finds a client by its id
  * @param token Token we are looking for in the linked list
  * @return Pointer to the client, or NULL if not found
  */
 t_client *
-client_list_find_by_token(const char *token)
+client_list_find_by_id(unsigned long long id)
 {
     t_client *ptr;
 
     ptr = firstclient;
     while (NULL != ptr) {
-        if (0 == strcmp(ptr->token, token))
+        if (ptr->id == id)
             return ptr;
         ptr = ptr->next;
     }
@@ -333,9 +320,6 @@ client_free_node(t_client * client)
 
     if (client->ip != NULL)
         free(client->ip);
-
-    if (client->token != NULL)
-        free(client->token);
 
     free(client);
 }

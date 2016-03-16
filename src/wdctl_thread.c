@@ -314,9 +314,8 @@ wdctl_restart(int afd)
         while (client) {
             /* Send this client */
             safe_asprintf(&tempstring,
-                          "CLIENT|ip=%s|mac=%s|token=%s|fw_connection_state=%u|fd=%d|counters_incoming=%llu|counters_outgoing=%llu|counters_last_updated=%lu\n",
-                          client->ip, client->mac, client->token, client->fw_connection_state, client->fd,
-                          client->counters.incoming, client->counters.outgoing, client->counters.last_updated);
+                          "CLIENT|ip=%s|mac=%s|fw_connection_state=%u|fd=%d\n",
+                          client->ip, client->mac, client->fw_connection_state, client->fd);
             debug(LOG_DEBUG, "Sending to child client data: %s", tempstring);
             write_to_socket(fd, tempstring, strlen(tempstring));        /* XXX Despicably not handling error. */
             free(tempstring);
@@ -337,7 +336,6 @@ wdctl_restart(int afd)
         /* Child */
         close(wdctl_socket_server);
         close(sock);
-//        close_icmp_socket();
         shutdown(afd, 2);
         close(afd);
         debug(LOG_NOTICE, "Re-executing myself (%s)", restartargv[0]);
@@ -374,15 +372,19 @@ wdctl_reset(int fd, const char *arg)
     debug(LOG_DEBUG, "Got node %x.", node);
 
     /* deny.... */
-    //logout_client(node);
-    fw_deny(node);
-    client_list_remove(node);
-    client_free_node(node);
+    if ( fw_deny(node) != 0 ){
+    	debug(LOG_ERR, "reset client [%s, %s] error.", node->ip, node->mac);
+    	goto fw_deny_err;
+    }
 
+    client_list_delete(node);
 
+fw_deny_err:
     UNLOCK_CLIENT_LIST();
 
     write_to_socket(fd, "Yes", 3);
 
     debug(LOG_DEBUG, "Exiting wdctl_reset...");
 }
+
+

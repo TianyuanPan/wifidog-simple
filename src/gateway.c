@@ -62,8 +62,6 @@
  * We need to remember the thread IDs of threads that simulate wait with pthread_cond_timedwait
  * so we can explicitly kill them in the termination handler
  */
-//static pthread_t tid_fw_counter = 0;
-//static pthread_t tid_ping = 0;
 
 time_t started_time = 0;
 
@@ -186,22 +184,10 @@ get_clients_from_parent(void)
                             client->ip = safe_strdup(value);
                         } else if (strcmp(key, "mac") == 0) {
                             client->mac = safe_strdup(value);
-                        } else if (strcmp(key, "token") == 0) {
-                            client->token = safe_strdup(value);
                         } else if (strcmp(key, "fw_connection_state") == 0) {
                             client->fw_connection_state = atoi(value);
                         } else if (strcmp(key, "fd") == 0) {
                             client->fd = atoi(value);
-                        } else if (strcmp(key, "counters_incoming") == 0) {
-                            client->counters.incoming_history = (unsigned long long)atoll(value);
-                            client->counters.incoming = client->counters.incoming_history;
-                            client->counters.incoming_delta = 0;
-                        } else if (strcmp(key, "counters_outgoing") == 0) {
-                            client->counters.outgoing_history = (unsigned long long)atoll(value);
-                            client->counters.outgoing = client->counters.outgoing_history;
-                            client->counters.outgoing_delta = 0;
-                        } else if (strcmp(key, "counters_last_updated") == 0) {
-                            client->counters.last_updated = atol(value);
                         } else {
                             debug(LOG_NOTICE, "I don't know how to inherit key [%s] value [%s] from parent", key,
                                   value);
@@ -271,21 +257,6 @@ termination_handler(int s)
 
     debug(LOG_INFO, "Flushing firewall rules...");
     fw_destroy();
-
-    /* XXX Hack
-     * Aparently pthread_cond_timedwait under openwrt prevents signals (and therefore
-     * termination handler) from happening so we need to explicitly kill the threads 
-     * that use that
-     */
-
-//    if (tid_fw_counter && self != tid_fw_counter) {
-//        debug(LOG_INFO, "Explicitly killing the fw_counter thread");
-//        pthread_kill(tid_fw_counter, SIGKILL);
-//    }
-//    if (tid_ping && self != tid_ping) {
-//        debug(LOG_INFO, "Explicitly killing the ping thread");
-//        pthread_kill(tid_ping, SIGKILL);
-//    }
 
     debug(LOG_NOTICE, "Exiting...");
     exit(s == 0 ? 1 : 0);
@@ -368,8 +339,8 @@ main_loop(void)
     }
 
 	/* save the pid file if needed */
-//    if ((!config) && (!config->pidfile))
-//        save_pid_file(config->pidfile);
+    if ((!config) && (!config->pidfile))
+        save_pid_file(config->pidfile);
 
     /* If we don't have the Gateway IP address, get it. Can't fail. */
     if (!config->gw_address) {
@@ -384,9 +355,9 @@ main_loop(void)
     /* If we don't have the Gateway ID, construct it from the internal MAC address.
      * "Can't fail" so exit() if the impossible happens. */
     if (!config->gw_id) {
-        debug(LOG_DEBUG, "Finding MAC address of %s", config->gw_interface);
-        if ((config->gw_id = get_iface_mac(config->gw_interface)) == NULL) {
-            debug(LOG_ERR, "Could not get MAC address information of %s, exiting...", config->gw_interface);
+        debug(LOG_DEBUG, "Finding MAC address of %s", config->external_interface);
+        if ((config->gw_id = get_iface_mac(config->external_interface)) == NULL) {
+            debug(LOG_ERR, "Could not get MAC address information of %s, exiting...", config->external_interface);
             exit(1);
         }
         debug(LOG_DEBUG, "%s = %s", config->gw_interface, config->gw_id);
@@ -401,13 +372,9 @@ main_loop(void)
     register_fd_cleanup_on_fork(webserver->serverSock);
 
     debug(LOG_DEBUG, "Assigning callbacks to web server");
-//    httpdAddCContent(webserver, "/", "wifidog", 0, NULL, http_callback_wifidog);
-//    httpdAddCContent(webserver, "/wifidog", "", 0, NULL, http_callback_wifidog);
-//    httpdAddCContent(webserver, "/wifidog", "about", 0, NULL, http_callback_about);
+
+    httpdAddCContent(webserver, "/wifidog", "about", 0, NULL, http_callback_about);
     httpdAddCContent(webserver, "/wifidog", "status", 0, NULL, http_callback_status);
-//    httpdAddCContent(webserver, "/wifidog", "auth", 0, NULL, http_callback_auth);
-//    httpdAddCContent(webserver, "/wifidog", "auth", 0, NULL, http_callback_auth_null);
-//    httpdAddCContent(webserver, "/wifidog", "disconnect", 0, NULL, http_callback_disconnect);
     httpdAddCContent(webserver, "/wifidog", "release", 0, NULL, http_callback_release);
     httpdAddCContent(webserver, "/wifidog", "allow", 0, NULL, http_callback_allow_redirect);
 
@@ -435,6 +402,7 @@ main_loop(void)
 
     debug(LOG_NOTICE, "Waiting for connections");
     while (1) {
+
         r = httpdGetConnection(webserver, NULL);
 
         /* We can't convert this to a switch because there might be
@@ -477,6 +445,8 @@ main_loop(void)
             /* XXX We failed an ACL.... No handling because
              * we don't set any... */
         }
+        //update the auth server ip
+        update_auth_svr_lastip(config);
     }
 
     /* never reached */

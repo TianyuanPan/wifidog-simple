@@ -40,6 +40,8 @@
 #define DEFAULT_HTMLMSGFILE SYSCONFDIR"/wifidog-msg.html"
 #endif
 #define DEFAULT_DAEMON 1
+#define DEFAULT_PID_FILE  "/tmp/pid_simple_wifidog"
+#define DEFAULT_EXTERNAL_IFACE "eth1"
 #define DEFAULT_DEBUGLEVEL LOG_INFO
 #define DEFAULT_HTTPDMAXCONN 10
 #define DEFAULT_GATEWAYID NULL
@@ -72,12 +74,12 @@
 
 /*@{*/
 /** Defines for firewall rule sets. */
-#define FWRULESET_GLOBAL "global"
-#define FWRULESET_VALIDATING_USERS "validating-users"
-#define FWRULESET_KNOWN_USERS "known-users"
-#define FWRULESET_AUTH_IS_DOWN "auth-is-down"
-#define FWRULESET_UNKNOWN_USERS "unknown-users"
-#define FWRULESET_LOCKED_USERS "locked-users"
+#define FWRULESET_GLOBAL                      "global"
+#define FWRULESET_VALIDATING_USERS            "validating-users"
+#define FWRULESET_KNOWN_USERS                 "known-users"
+#define FWRULESET_AUTH_IS_DOWN                "auth-is-down"
+#define FWRULESET_UNKNOWN_USERS               "unknown-users"
+#define FWRULESET_LOCKED_USERS                "locked-users"
 /*@}*/
 
 /**
@@ -161,7 +163,7 @@ typedef struct {
     char *htmlmsgfile;          /**< @brief name of the HTML file used for messages */
     char *wdctl_sock;           /**< @brief wdctl path to socket */
     char *internal_sock;                /**< @brief internal path to socket */
-    int deltatraffic;                   /**< @brief reset each user's traffic (Outgoing and Incoming) value after each Auth operation. */
+//    int deltatraffic;                   /**< @brief reset each user's traffic (Outgoing and Incoming) value after each Auth operation. */
     int daemon;                 /**< @brief if daemon > 0, use daemon mode */
     char *pidfile;            /**< @brief pid file path of wifidog */
     char *external_interface;   /**< @brief External network interface name for
@@ -181,10 +183,10 @@ typedef struct {
     char *httpdrealm;           /**< @brief HTTP Authentication realm */
     char *httpdusername;        /**< @brief Username for HTTP authentication */
     char *httpdpassword;        /**< @brief Password for HTTP authentication */
-    int clienttimeout;          /**< @brief How many CheckIntervals before a client
-				     must be re-authenticated */
-    int checkinterval;          /**< @brief Frequency the the client timeout check
-				     thread will run. */
+//    int clienttimeout;          /**< @brief How many CheckIntervals before a client
+//				     must be re-authenticated */
+//    int checkinterval;          /**< @brief Frequency the the client timeout check
+//				     thread will run. */
     int proxy_port;             /**< @brief Transparent proxy port (0 to disable) */
     char *ssl_certs;            /**< @brief Path to SSL certs for auth server
 		verification */
@@ -226,6 +228,8 @@ t_firewall_rule *get_ruleset(const char *);
 
 
 void set_auth_svr_lastip(s_config *config);
+
+void update_auth_svr_lastip(s_config *conf);
 
 #define LOCK_CONFIG() do { \
 	debug(LOG_DEBUG, "Locking config"); \

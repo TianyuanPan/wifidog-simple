@@ -61,14 +61,6 @@ int fw_allow_host(const char *);
 /** @brief Deny a client access through the firewall*/
 int fw_deny(t_client *);
 
-/** @brief Passthrough for clients when auth server is down */
-int fw_set_authdown(void);
-
-/** @brief Remove passthrough for clients when auth server is up */
-int fw_set_authup(void);
-
-/** @brief Refreshes the entire client list */
-void fw_sync_with_authserver(void);
 
 /** @brief Get an IP's MAC address from the ARP cache.*/
 char *arp_get(const char *);
