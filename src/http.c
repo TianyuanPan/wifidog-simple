@@ -167,7 +167,8 @@ http_send_redirect(request * r, const char *url, const char *text)
     /* Re-direct them to auth server */
     debug(LOG_DEBUG, "Redirecting client browser to %s", url);
     safe_asprintf(&header, "Location: %s", url);
-    safe_asprintf(&response, "302 %s\n", text ? text : "Redirecting");
+//    safe_asprintf(&response, "302 %s\n", text ? text : "Redirecting");
+    safe_asprintf(&response, "301 %s\n", text ? text : "Redirecting");
     httpdSetResponse(r, response);
     httpdAddHeader(r, header);
     free(response);
