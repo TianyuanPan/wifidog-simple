@@ -419,6 +419,7 @@ _httpd_sendHeaders(request * r, int contentLength, int modTime)
     _httpd_net_write(r->clientSock, "\n", 1);
 }
 
+/*************************************************************
 httpDir *
 _httpd_findContentDir(server, dir, createFlag)
 httpd *server;
@@ -455,6 +456,76 @@ int createFlag;
     }
     return (curItem);
 }
+/**********************************************************/
+
+httpDir *
+_httpd_findContentDir(server, dir, createFlag)
+httpd *server;
+char *dir;
+int createFlag;
+{
+    char buffer[HTTP_MAX_URL], *curDir;
+    httpDir *curItem, *curChild;
+
+    strncpy(buffer, dir, HTTP_MAX_URL);
+    buffer[HTTP_MAX_URL - 1] = 0;
+    curItem = server->content;
+
+    //curDir = strtok(buffer, "/");
+    /*************** START HERE *******************/
+    int buf_len = strlen(buffer);
+    int cur_len,
+        all_cur_len = 0,
+        null_c = 0;
+    char *ptr = NULL;
+
+    if (!buf_len)
+    	curDir = NULL;
+    else{
+    	ptr = buffer;
+    	while (strsep(&ptr, "/"))
+    		null_c++;
+    	curDir = buffer;
+    	cur_len = strlen(curDir);
+    	all_cur_len = cur_len;
+    }
+    /*************** END HERE *******************/
+
+    while (curDir) {
+        curChild = curItem->children;
+        while (curChild) {
+            if (strcmp(curChild->name, curDir) == 0)
+                break;
+            curChild = curChild->next;
+        }
+        if (curChild == NULL) {
+            if (createFlag == HTTP_TRUE) {
+                curChild = malloc(sizeof(httpDir));
+                bzero(curChild, sizeof(httpDir));
+                curChild->name = strdup(curDir);
+                curChild->next = curItem->children;
+                curItem->children = curChild;
+            } else {
+                return (NULL);
+            }
+        }
+        curItem = curChild;
+        //curDir = strtok(NULL, "/");
+        /*************** START HERE *******************/
+        if ((all_cur_len + null_c )  < buf_len){
+              curDir += cur_len;
+              while(*curDir == 0)
+     	             ++curDir;
+
+     	      cur_len = strlen(curDir);
+              all_cur_len += cur_len;
+         }else
+          curDir = NULL;
+        /*************** END **************************/
+    }
+    return (curItem);
+}
+
 
 httpContent *
 _httpd_findContentEntry(request * r, httpDir * dir, char *entryName)

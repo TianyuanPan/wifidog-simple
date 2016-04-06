@@ -91,7 +91,7 @@ http_callback_404(httpd * webserver, request * r, int error_code)
         debug(LOG_INFO, "Captured %s requesting [%s] and re-directing them to login page", r->clientAddr, url);
         http_send_redirect_to_auth(r, urlFragment, "Redirect to login page");
         free(urlFragment);
-    free(url);
+        free(url);
 }
 
 void
@@ -150,6 +150,7 @@ http_send_redirect_to_auth(request * r, const char *urlFragment, const char *tex
     char *url = NULL;
     safe_asprintf(&url, "%s://%s:%d%s%s",
                   protocol, auth_server->authserv_hostname, port, auth_server->authserv_path, urlFragment);
+    debug(LOG_INFO, "redirect URL[ %s ]", url);
     http_send_redirect(r, url, text);
     free(url);
 }
@@ -165,16 +166,17 @@ http_send_redirect(request * r, const char *url, const char *text)
     char *header = NULL;
     char *response = NULL;
     /* Re-direct them to auth server */
-    debug(LOG_DEBUG, "Redirecting client browser to %s", url);
+    debug(LOG_INFO, "Redirecting client browser to URL [ %s ]", url);
     safe_asprintf(&header, "Location: %s", url);
-//    safe_asprintf(&response, "302 %s\n", text ? text : "Redirecting");
-    safe_asprintf(&response, "301 %s\n", text ? text : "Redirecting");
+    safe_asprintf(&response, "302 %s\n", text ? text : "Redirecting");
+//    safe_asprintf(&response, "301 %s\n", text ? text : "Redirecting");
     httpdSetResponse(r, response);
     httpdAddHeader(r, header);
     free(response);
     free(header);
     safe_asprintf(&message, "Please <a href='%s'>click here</a>.", url);
     send_http_page(r, text ? text : "Redirection to message", message);
+    debug(LOG_INFO, "redirect message [ %s ]", message);
     free(message);
 }
 
@@ -189,7 +191,7 @@ static int allow_client(httpd * webserver, request * r)
         /* We could not get their MAC address */
         debug(LOG_ERR, "Failed to retrieve MAC address for ip %s", r->clientAddr);
         send_http_page(r, "WiFiDog Error", "Failed to retrieve your MAC address");
-        debug(LOG_ERR, "==== MAC UNDEFIND ====\n");
+        debug(LOG_ERR, "ERROR: MAC address not found.");
         return -1;
     }
 
@@ -301,22 +303,25 @@ void http_callback_allow_redirect(httpd * webserver, request * r)
 	}
 
 
-	debug(LOG_DEBUG, "Function: http_callback_allow_redirect URL: [ %s ] ", url);
+	debug(LOG_INFO, "Function: http_callback_allow_redirect URL: [ %s ] ", url);
 
 	http_send_redirect(r, url, "allow redirecting");
 
     return;
 }
 
+
 void http_callback_auth_null(httpd * webserver, request * r)
 {
 	return;
 }
 
+
 void http_callback_auth(httpd * webserver, request * r)
 {
 
 }
+
 
 void http_callback_disconnect(httpd * webserver, request * r)
 {

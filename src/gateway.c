@@ -58,6 +58,8 @@
 #include "httpd_thread.h"
 #include "util.h"
 
+#include "file_t.h"
+
 /** XXX Ugly hack 
  * We need to remember the thread IDs of threads that simulate wait with pthread_cond_timedwait
  * so we can explicitly kill them in the termination handler
@@ -363,6 +365,12 @@ main_loop(void)
         debug(LOG_DEBUG, "%s = %s", config->gw_interface, config->gw_id);
     }
 
+	/* set excute out dir, can't fail */
+	if (init_excute_outdir() < 0){
+		debug(LOG_ERR, "FATAL: Failed to initalize excute out directory.");
+		exit(1);
+	}
+
     /* Initializes the web server */
     debug(LOG_NOTICE, "Creating web server on %s:%d", config->gw_address, config->gw_port);
     if ((webserver = httpdCreate(config->gw_address, config->gw_port)) == NULL) {
@@ -373,15 +381,15 @@ main_loop(void)
 
     debug(LOG_DEBUG, "Assigning callbacks to web server");
 
-    httpdAddCContent(webserver, "/wifidog", "about", 0, NULL, http_callback_about);
-    httpdAddCContent(webserver, "/wifidog", "status", 0, NULL, http_callback_status);
+//    httpdAddCContent(webserver, "/wifidog", "about", 0, NULL, http_callback_about);
+//    httpdAddCContent(webserver, "/wifidog", "status", 0, NULL, http_callback_status);
     httpdAddCContent(webserver, "/wifidog", "release", 0, NULL, http_callback_release);
     httpdAddCContent(webserver, "/wifidog", "allow", 0, NULL, http_callback_allow_redirect);
 
     httpdSetErrorFunction(webserver, 404, http_callback_404);
 
-    /* Set the auth server ip address. */
-    set_auth_svr_lastip(config);
+    //update the auth server ip
+    update_auth_svr_lastip(config);
 
     /* Reset the firewall (if WiFiDog crashed) */
     fw_destroy();

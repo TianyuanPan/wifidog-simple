@@ -49,6 +49,8 @@
 #include "util.h"
 #include "client_list.h"
 
+#include "file_t.h"
+
 static int iptables_do_command(const char *format, ...);
 static char *iptables_compile(const char *, const char *, const t_firewall_rule *);
 static void iptables_load_ruleset(const char *, const char *, const char *);
@@ -274,7 +276,7 @@ iptables_fw_init(void)
     /* Create new chains */
     iptables_do_command("-t mangle -N " CHAIN_TRUSTED);
     iptables_do_command("-t mangle -N " CHAIN_OUTGOING);
-    iptables_do_command("-t mangle -N " CHAIN_INCOMING);
+//    iptables_do_command("-t mangle -N " CHAIN_INCOMING);
 
 
     /* Assign links and rules to these new chains */
@@ -282,7 +284,7 @@ iptables_fw_init(void)
     iptables_do_command("-t mangle -I PREROUTING 1 -i %s -j " CHAIN_TRUSTED, config->gw_interface);     //this rule will be inserted before the prior one
 
 
-    iptables_do_command("-t mangle -I POSTROUTING 1 -o %s -j " CHAIN_INCOMING, config->gw_interface);
+//    iptables_do_command("-t mangle -I POSTROUTING 1 -o %s -j " CHAIN_INCOMING, config->gw_interface);
 
     for (p = config->trustedmaclist; p != NULL; p = p->next)
         iptables_do_command("-t mangle -A " CHAIN_TRUSTED " -m mac --mac-source %s -j MARK --set-mark %d", p->mac,
@@ -409,17 +411,17 @@ iptables_fw_destroy(void)
     iptables_fw_destroy_mention("mangle", "PREROUTING", CHAIN_TRUSTED);
     iptables_fw_destroy_mention("mangle", "PREROUTING", CHAIN_OUTGOING);
 
-    iptables_fw_destroy_mention("mangle", "POSTROUTING", CHAIN_INCOMING);
+//    iptables_fw_destroy_mention("mangle", "POSTROUTING", CHAIN_INCOMING);
     iptables_do_command("-t mangle -F " CHAIN_TRUSTED);
     iptables_do_command("-t mangle -F " CHAIN_OUTGOING);
 
 
-    iptables_do_command("-t mangle -F " CHAIN_INCOMING);
+//    iptables_do_command("-t mangle -F " CHAIN_INCOMING);
     iptables_do_command("-t mangle -X " CHAIN_TRUSTED);
     iptables_do_command("-t mangle -X " CHAIN_OUTGOING);
 
 
-    iptables_do_command("-t mangle -X " CHAIN_INCOMING);
+//    iptables_do_command("-t mangle -X " CHAIN_INCOMING);
 
     /*
      *
@@ -477,10 +479,66 @@ iptables_fw_destroy(void)
  * @param chain The chain in that table to search
  * @param mention A word to find and delete in rules in the given table+chain
  */
+
+//int
+//iptables_fw_destroy_mention(const char *table, const char *chain, const char *mention)
+//{
+//    FILE *p = NULL;
+//    char *command = NULL;
+//    char *command2 = NULL;
+//    char line[MAX_BUF];
+//    char rulenum[10];
+//    char *victim = safe_strdup(mention);
+//    int deleted = 0;
+//
+//    iptables_insert_gateway_id(&victim);
+//
+//    debug(LOG_DEBUG, "Attempting to destroy all mention of %s from %s.%s", victim, table, chain);
+//
+//    safe_asprintf(&command, "iptables -t %s -L %s -n --line-numbers -v", table, chain);
+//    iptables_insert_gateway_id(&command);
+//
+//    if ((p = popen(command, "r"))) {
+//        /* Skip first 2 lines */
+//        while (!feof(p) && fgetc(p) != '\n') ;
+//        while (!feof(p) && fgetc(p) != '\n') ;
+//        /* Loop over entries */
+//        while (fgets(line, sizeof(line), p)) {
+//            /* Look for victim */
+//            if (strstr(line, victim)) {
+//                /* Found victim - Get the rule number into rulenum */
+//                if (sscanf(line, "%9[0-9]", rulenum) == 1) {
+//                    /* Delete the rule: */
+//                    debug(LOG_DEBUG, "Deleting rule %s from %s.%s because it mentions %s", rulenum, table, chain,
+//                          victim);
+//                    safe_asprintf(&command2, "-t %s -D %s %s", table, chain, rulenum);
+//                    iptables_do_command(command2);
+//                    free(command2);
+//                    deleted = 1;
+//                    /* Do not keep looping - the captured rulenums will no longer be accurate */
+//                    break;
+//                }
+//            }
+//        }
+//        pclose(p);
+//    }
+//
+//    free(command);
+//    free(victim);
+//
+//    if (deleted) {
+//        /* Recurse just in case there are more in the same table+chain */
+//        iptables_fw_destroy_mention(table, chain, mention);
+//    }
+//
+//    return (deleted);
+//}
+
 int
 iptables_fw_destroy_mention(const char *table, const char *chain, const char *mention)
 {
-    FILE *p = NULL;
+    //FILE *p = NULL;
+	FILE_T *pft = NULL;
     char *command = NULL;
     char *command2 = NULL;
     char line[MAX_BUF];
@@ -495,12 +553,16 @@ iptables_fw_destroy_mention(const char *table, const char *chain, const char *me
     safe_asprintf(&command, "iptables -t %s -L %s -n --line-numbers -v", table, chain);
     iptables_insert_gateway_id(&command);
 
-    if ((p = popen(command, "r"))) {
+    //if ((p = popen(command, "r"))) {
+    if ((pft = excute_open(command, "r"))) {
         /* Skip first 2 lines */
-        while (!feof(p) && fgetc(p) != '\n') ;
-        while (!feof(p) && fgetc(p) != '\n') ;
+        //while (!feof(p) && fgetc(p) != '\n') ;
+    	while (!feof(pft->fp) && fgetc(pft->fp) != '\n') ;
+        //while (!feof(p) && fgetc(p) != '\n') ;
+    	while (!feof(pft->fp) && fgetc(pft->fp) != '\n') ;
         /* Loop over entries */
-        while (fgets(line, sizeof(line), p)) {
+        //while (fgets(line, sizeof(line), p)) {
+    	while (fgets(line, sizeof(line), pft->fp)) {
             /* Look for victim */
             if (strstr(line, victim)) {
                 /* Found victim - Get the rule number into rulenum */
@@ -517,7 +579,8 @@ iptables_fw_destroy_mention(const char *table, const char *chain, const char *me
                 }
             }
         }
-        pclose(p);
+        //pclose(p);
+    	excute_close(pft);
     }
 
     free(command);
@@ -531,6 +594,8 @@ iptables_fw_destroy_mention(const char *table, const char *chain, const char *me
     return (deleted);
 }
 
+
+
 /** Set if a specific client has access through the firewall */
 int
 iptables_fw_access(fw_access_t type, const char *ip, const char *mac, int tag)
@@ -541,15 +606,15 @@ iptables_fw_access(fw_access_t type, const char *ip, const char *mac, int tag)
 
     switch (type) {
     case FW_ACCESS_ALLOW:
-        iptables_do_command("-t mangle -A " CHAIN_OUTGOING " -s %s -m mac --mac-source %s -j MARK --set-mark %d", ip,
+        rc = iptables_do_command("-t mangle -A " CHAIN_OUTGOING " -s %s -m mac --mac-source %s -j MARK --set-mark %d", ip,
                             mac, tag);
-        rc = iptables_do_command("-t mangle -A " CHAIN_INCOMING " -d %s -j ACCEPT", ip);
+//        rc = iptables_do_command("-t mangle -A " CHAIN_INCOMING " -d %s -j ACCEPT", ip);
         break;
     case FW_ACCESS_DENY:
         /* XXX Add looping to really clear? */
-        iptables_do_command("-t mangle -D " CHAIN_OUTGOING " -s %s -m mac --mac-source %s -j MARK --set-mark %d", ip,
+        rc = iptables_do_command("-t mangle -D " CHAIN_OUTGOING " -s %s -m mac --mac-source %s -j MARK --set-mark %d", ip,
                             mac, tag);
-        rc = iptables_do_command("-t mangle -D " CHAIN_INCOMING " -d %s -j ACCEPT", ip);
+//        rc = iptables_do_command("-t mangle -D " CHAIN_INCOMING " -d %s -j ACCEPT", ip);
         break;
     default:
         rc = -1;
