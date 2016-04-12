@@ -1,10 +1,12 @@
 #!/bin/sh /etc/rc.common
 # Copyright (C) 2006 OpenWrt.org
-START=65
+START=92
+STOP=50
 EXTRA_COMMANDS="status"
 EXTRA_HELP="        status Print the status of the service"
 
 start() {
+    sleep 30
 	/usr/bin/wifidog-init start
 }
 

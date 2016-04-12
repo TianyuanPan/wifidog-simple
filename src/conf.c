@@ -1004,8 +1004,8 @@ validate_popular_servers(void)
 {
     if (config.popular_servers == NULL) {
         debug(LOG_WARNING, "PopularServers not set in config file, this will become fatal in a future version.");
-        add_popular_server("www.google.com");
-        add_popular_server("www.yahoo.com");
+        add_popular_server("www.baidu.com");
+        add_popular_server("www.hao123.com");
     }
 }
 
