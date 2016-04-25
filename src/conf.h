@@ -32,44 +32,48 @@
 /** Defines */
 
 /** Defaults configuration values */
-#ifndef SYSCONFDIR
-#define DEFAULT_CONFIGFILE "/etc/wifidog.conf"
-#define DEFAULT_HTMLMSGFILE "/etc/wifidog-msg.html"
+
+//#ifndef SYSCONFDIR
+#define DEFAULT_CONFIGFILE                    "/etc/wifidog-simple.conf"
+//#define DEFAULT_HTMLMSGFILE                   "/etc/wifidog-msg.html"
+/*
 #else
-#define DEFAULT_CONFIGFILE SYSCONFDIR"/wifidog.conf"
-#define DEFAULT_HTMLMSGFILE SYSCONFDIR"/wifidog-msg.html"
+#define DEFAULT_CONFIGFILE SYSCONFDIR         "/wifidog.conf"
+#define DEFAULT_HTMLMSGFILE SYSCONFDIR        "/wifidog-msg.html"
 #endif
-#define DEFAULT_DAEMON 1
-#define DEFAULT_PID_FILE  "/tmp/pid_simple_wifidog"
-#define DEFAULT_EXTERNAL_IFACE "eth1"
-#define DEFAULT_DEBUGLEVEL LOG_INFO
-#define DEFAULT_HTTPDMAXCONN 10
-#define DEFAULT_GATEWAYID NULL
-#define DEFAULT_GATEWAYPORT 2060
-#define DEFAULT_HTTPDNAME "WiFiDog"
-#define DEFAULT_CLIENTTIMEOUT 5
-#define DEFAULT_CHECKINTERVAL 60
-#define DEFAULT_LOG_SYSLOG 0
-#define DEFAULT_SYSLOG_FACILITY LOG_DAEMON
-#define DEFAULT_WDCTL_SOCK "/tmp/wdctl.sock"
-#define DEFAULT_INTERNAL_SOCK "/tmp/wifidog.sock"
-#define DEFAULT_AUTHSERVPORT 80
-#define DEFAULT_AUTHSERVSSLPORT 443
+*/
+
+#define DEFAULT_DAEMON                        1
+#define DEFAULT_PID_FILE                      "/tmp/pid_simple_wifidog"
+#define DEFAULT_EXTERNAL_IFACE                "eth1"
+#define DEFAULT_DEBUGLEVEL                    LOG_INFO
+#define DEFAULT_HTTPDMAXCONN                  10
+#define DEFAULT_GATEWAYID                     NULL
+#define DEFAULT_GATEWAYPORT                   2060
+#define DEFAULT_HTTPDNAME                     "WiFiDog"
+#define DEFAULT_CLIENTTIMEOUT                 5
+#define DEFAULT_CHECKINTERVAL                 60
+#define DEFAULT_LOG_SYSLOG                    0
+#define DEFAULT_SYSLOG_FACILITY               LOG_DAEMON
+#define DEFAULT_WDCTL_SOCK                    "/tmp/wdctl.sock"
+#define DEFAULT_INTERNAL_SOCK                 "/tmp/wifidog.sock"
+#define DEFAULT_AUTHSERVPORT                  80
+#define DEFAULT_AUTHSERVSSLPORT               443
 /** Note that DEFAULT_AUTHSERVSSLAVAILABLE must be 0 or 1, even if the config file syntax is yes or no */
-#define DEFAULT_AUTHSERVSSLAVAILABLE 0
+#define DEFAULT_AUTHSERVSSLAVAILABLE          0
 /** Note:  The path must be prefixed by /, and must be suffixed /.  Put / for the server root.*/
-#define DEFAULT_AUTHSERVPATH "/wifidog/"
-#define DEFAULT_AUTHSERVLOGINPATHFRAGMENT "login/?"
-#define DEFAULT_AUTHSERVPORTALPATHFRAGMENT "portal/?"
-#define DEFAULT_AUTHSERVMSGPATHFRAGMENT "gw_message.php?"
-#define DEFAULT_AUTHSERVPINGPATHFRAGMENT "ping/?"
-#define DEFAULT_AUTHSERVAUTHPATHFRAGMENT "auth/?"
-#define DEFAULT_AUTHSERVSSLCERTPATH "/etc/ssl/certs/"
+#define DEFAULT_AUTHSERVPATH                  "/wifidog/"
+#define DEFAULT_AUTHSERVLOGINPATHFRAGMENT     "login/?"
+//#define DEFAULT_AUTHSERVPORTALPATHFRAGMENT    "portal/?"
+//#define DEFAULT_AUTHSERVMSGPATHFRAGMENT       "gw_message.php?"
+//#define DEFAULT_AUTHSERVPINGPATHFRAGMENT      "ping/?"
+//#define DEFAULT_AUTHSERVAUTHPATHFRAGMENT      "auth/?"
+//#define DEFAULT_AUTHSERVSSLCERTPATH           "/etc/ssl/certs/"
 /** Note that DEFAULT_AUTHSERVSSLNOPEERVER must be 0 or 1, even if the config file syntax is yes or no */
-#define DEFAULT_AUTHSERVSSLPEERVER 1    /* 0 means: Enable peer verification */
-#define DEFAULT_DELTATRAFFIC 0    /* 0 means: Enable peer verification */
-#define DEFAULT_ARPTABLE "/proc/net/arp"
-#define DEFAULT_AUTHSERVSSLSNI 0  /* 0 means: Disable SNI */
+//#define DEFAULT_AUTHSERVSSLPEERVER            1    /* 0 means: Enable peer verification */
+#define DEFAULT_DELTATRAFFIC                  0    /* 0 means: Enable peer verification */
+#define DEFAULT_ARPTABLE                      "/proc/net/arp"
+//#define DEFAULT_AUTHSERVSSLSNI                0  /* 0 means: Disable SNI */
 /*@}*/
 
 /*@{*/
@@ -94,15 +98,15 @@ typedef struct _auth_serv_t {
     char *authserv_hostname;    /**< @brief Hostname of the central server */
     char *authserv_path;        /**< @brief Path where wifidog resides */
     char *authserv_login_script_path_fragment;  /**< @brief This is the script the user will be sent to for login. */
-    char *authserv_portal_script_path_fragment; /**< @brief This is the script the user will be sent to after a successfull login. */
-    char *authserv_msg_script_path_fragment;    /**< @brief This is the script the user will be sent to upon error to read a readable message. */
-    char *authserv_ping_script_path_fragment;   /**< @brief This is the ping heartbeating script. */
-    char *authserv_auth_script_path_fragment;   /**< @brief This is the script that talks the wifidog gateway protocol. */
+//    char *authserv_portal_script_path_fragment; /**< @brief This is the script the user will be sent to after a successfull login. */
+//    char *authserv_msg_script_path_fragment;    /**< @brief This is the script the user will be sent to upon error to read a readable message. */
+//    char *authserv_ping_script_path_fragment;   /**< @brief This is the ping heartbeating script. */
+//    char *authserv_auth_script_path_fragment;   /**< @brief This is the script that talks the wifidog gateway protocol. */
     int authserv_http_port;     /**< @brief Http port the central server
 				     listens on */
-    int authserv_ssl_port;      /**< @brief Https port the central server
-				     listens on */
-    int authserv_use_ssl;       /**< @brief Use SSL or not */
+//    int authserv_ssl_port;      /**< @brief Https port the central server
+//				     listens on */
+//    int authserv_use_ssl;       /**< @brief Use SSL or not */
     char *last_ip;      /**< @brief Last ip used by authserver */
     struct _auth_serv_t *next;
 } t_auth_serv;
@@ -142,11 +146,12 @@ typedef struct _firewall_ruleset_t {
 /**
  * Trusted MAC Addresses
  */
+/*
 typedef struct _trusted_mac_t {
     char *mac;
     struct _trusted_mac_t *next;
 } t_trusted_mac;
-
+*/
 /**
  * Popular Servers
  */
@@ -160,7 +165,7 @@ typedef struct _popular_server_t {
  */
 typedef struct {
     char *configfile;       /**< @brief name of the config file */
-    char *htmlmsgfile;          /**< @brief name of the HTML file used for messages */
+//    char *htmlmsgfile;          /**< @brief name of the HTML file used for messages */
     char *wdctl_sock;           /**< @brief wdctl path to socket */
     char *internal_sock;                /**< @brief internal path to socket */
 //    int deltatraffic;                   /**< @brief reset each user's traffic (Outgoing and Incoming) value after each Auth operation. */
@@ -187,16 +192,16 @@ typedef struct {
 //				     must be re-authenticated */
 //    int checkinterval;          /**< @brief Frequency the the client timeout check
 //				     thread will run. */
-    int proxy_port;             /**< @brief Transparent proxy port (0 to disable) */
-    char *ssl_certs;            /**< @brief Path to SSL certs for auth server
+//    int proxy_port;             /**< @brief Transparent proxy port (0 to disable) */
+   /* char *ssl_certs;  */          /**< @brief Path to SSL certs for auth server
 		verification */
-    int ssl_verify;             /**< @brief boolean, whether to enable
+   /* int ssl_verify;  */           /**< @brief boolean, whether to enable
 		auth server certificate verification */
-    char *ssl_cipher_list;  /**< @brief List of SSL ciphers allowed. Optional. */
-    int ssl_use_sni;            /**< @brief boolean, whether to enable
+//    char *ssl_cipher_list;  /**< @brief List of SSL ciphers allowed. Optional. */
+  /*  int ssl_use_sni;   */         /**< @brief boolean, whether to enable
     auth server for server name indication, the TLS extension */
     t_firewall_ruleset *rulesets;       /**< @brief firewall rules */
-    t_trusted_mac *trustedmaclist; /**< @brief list of trusted macs */
+//    t_trusted_mac *trustedmaclist; /**< @brief list of trusted macs */
     char *arp_table_path; /**< @brief Path to custom ARP table, formatted
         like /proc/net/arp */
     t_popular_server *popular_servers; /**< @brief list of popular servers */

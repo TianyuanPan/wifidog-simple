@@ -139,13 +139,13 @@ http_send_redirect_to_auth(request * r, const char *urlFragment, const char *tex
     int port = 80;
     t_auth_serv *auth_server = get_auth_server();
 
-    if (auth_server->authserv_use_ssl) {
+/*    if (auth_server->authserv_use_ssl) {
         protocol = "https";
         port = auth_server->authserv_ssl_port;
-    } else {
+    } else {*/
         protocol = "http";
         port = auth_server->authserv_http_port;
-    }
+//    }
 
     char *url = NULL;
     safe_asprintf(&url, "%s://%s:%d%s%s",
@@ -332,9 +332,9 @@ void http_callback_disconnect(httpd * webserver, request * r)
 void
 send_http_page(request * r, const char *title, const char *message)
 {
-    s_config *config = config_get_config();
+//    s_config *config = config_get_config();
     char *buffer;
-    struct stat stat_info;
+    /*struct stat stat_info;
     int fd;
     ssize_t written;
 
@@ -358,12 +358,18 @@ send_http_page(request * r, const char *title, const char *message)
         close(fd);
         return;
     }
-    close(fd);
-
-    buffer[written] = 0;
+    close(fd);*/
+    char html[] = {"<html><body><p>hello world!</p></body></html>"};
+    size_t size = sizeof(html) + 1;
+    buffer = (char *)safe_malloc(size);
+    sprintf(buffer, "%s", html);
+//    buffer[size] = 0;
     httpdAddVariable(r, "title", title);
     httpdAddVariable(r, "message", message);
-    httpdAddVariable(r, "nodeID", config->gw_id);
+//    httpdAddVariable(r, "nodeID", config->gw_id);
     httpdOutput(r, buffer);
     free(buffer);
 }
+
+
+

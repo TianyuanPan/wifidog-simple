@@ -74,15 +74,15 @@ typedef enum {
     oGatewayPort,
     oAuthServer,
     oAuthServHostname,
-    oAuthServSSLAvailable,
-    oAuthServSSLPort,
+//    oAuthServSSLAvailable,
+//    oAuthServSSLPort,
     oAuthServHTTPPort,
     oAuthServPath,
     oAuthServLoginScriptPathFragment,
-    oAuthServPortalScriptPathFragment,
-    oAuthServMsgScriptPathFragment,
-    oAuthServPingScriptPathFragment,
-    oAuthServAuthScriptPathFragment,
+//    oAuthServPortalScriptPathFragment,
+//    oAuthServMsgScriptPathFragment,
+//    oAuthServPingScriptPathFragment,
+//    oAuthServAuthScriptPathFragment,
     oHTTPDMaxConn,
     oHTTPDName,
     oHTTPDRealm,
@@ -92,14 +92,14 @@ typedef enum {
     oSyslogFacility,
     oFirewallRule,
     oFirewallRuleSet,
-    oTrustedMACList,
+//    oTrustedMACList,
     oPopularServers,
-    oHtmlMessageFile,
-    oProxyPort,
-    oSSLPeerVerification,
-    oSSLCertPath,
-    oSSLAllowedCipherList,
-    oSSLUseSNI,
+//    oHtmlMessageFile,
+//    oProxyPort,
+//    oSSLPeerVerification,
+//    oSSLCertPath,
+//    oSSLAllowedCipherList,
+//    oSSLUseSNI,
 } OpCodes;
 
 /** @internal
@@ -125,25 +125,25 @@ static const struct {
     "syslogfacility", oSyslogFacility}, {
     "wdctlsocket", oWdctlSocket}, {
     "hostname", oAuthServHostname}, {
-    "sslavailable", oAuthServSSLAvailable}, {
-    "sslport", oAuthServSSLPort}, {
+//    "sslavailable", oAuthServSSLAvailable}, {
+//    "sslport", oAuthServSSLPort}, {
     "httpport", oAuthServHTTPPort}, {
     "path", oAuthServPath}, {
     "loginscriptpathfragment", oAuthServLoginScriptPathFragment}, {
-    "portalscriptpathfragment", oAuthServPortalScriptPathFragment}, {
-    "msgscriptpathfragment", oAuthServMsgScriptPathFragment}, {
-    "pingscriptpathfragment", oAuthServPingScriptPathFragment}, {
-    "authscriptpathfragment", oAuthServAuthScriptPathFragment}, {
+//    "portalscriptpathfragment", oAuthServPortalScriptPathFragment}, {
+//    "msgscriptpathfragment", oAuthServMsgScriptPathFragment}, {
+//    "pingscriptpathfragment", oAuthServPingScriptPathFragment}, {
+//    "authscriptpathfragment", oAuthServAuthScriptPathFragment}, {
     "firewallruleset", oFirewallRuleSet}, {
     "firewallrule", oFirewallRule}, {
-    "trustedmaclist", oTrustedMACList}, {
+//    "trustedmaclist", oTrustedMACList}, {
     "popularservers", oPopularServers}, {
-    "htmlmessagefile", oHtmlMessageFile}, {
-    "proxyport", oProxyPort}, {
-    "sslpeerverification", oSSLPeerVerification}, {
-    "sslcertpath", oSSLCertPath}, {
-    "sslallowedcipherlist", oSSLAllowedCipherList}, {
-    "sslusesni", oSSLUseSNI}, {
+//    "htmlmessagefile", oHtmlMessageFile}, {
+//    "proxyport", oProxyPort}, {
+//    "sslpeerverification", oSSLPeerVerification}, {
+//    "sslcertpath", oSSLCertPath}, {
+//    "sslallowedcipherlist", oSSLAllowedCipherList}, {
+//    "sslusesni", oSSLUseSNI}, {
 NULL, oBadOption},};
 
 static void config_notnull(const void *, const char *);
@@ -173,7 +173,7 @@ config_init(void)
 {
     debug(LOG_DEBUG, "Setting default config parameters");
     config.configfile = safe_strdup(DEFAULT_CONFIGFILE);
-    config.htmlmsgfile = safe_strdup(DEFAULT_HTMLMSGFILE);
+//    config.htmlmsgfile = safe_strdup(DEFAULT_HTMLMSGFILE);
     config.httpdmaxconn = DEFAULT_HTTPDMAXCONN;
     config.external_interface = safe_strdup(DEFAULT_EXTERNAL_IFACE);
     config.gw_id = DEFAULT_GATEWAYID;
@@ -190,14 +190,14 @@ config_init(void)
     config.wdctl_sock = safe_strdup(DEFAULT_WDCTL_SOCK);
     config.internal_sock = safe_strdup(DEFAULT_INTERNAL_SOCK);
     config.rulesets = NULL;
-    config.trustedmaclist = NULL;
+//    config.trustedmaclist = NULL;
     config.popular_servers = NULL;
-    config.proxy_port = 0;
+ /*   config.proxy_port = 0;
     config.ssl_certs = safe_strdup(DEFAULT_AUTHSERVSSLCERTPATH);
     config.ssl_verify = DEFAULT_AUTHSERVSSLPEERVER;
-    config.ssl_cipher_list = NULL;
+    config.ssl_cipher_list = NULL;*/
     config.arp_table_path = safe_strdup(DEFAULT_ARPTABLE);
-    config.ssl_use_sni = DEFAULT_AUTHSERVSSLSNI;
+//    config.ssl_use_sni = DEFAULT_AUTHSERVSSLSNI;
 
     debugconf.log_stderr = 1;
     debugconf.debuglevel = DEFAULT_DEBUGLEVEL;
@@ -244,22 +244,28 @@ parse_auth_server(FILE * file, const char *filename, int *linenum)
     char *host = NULL,
         *path = NULL,
         *loginscriptpathfragment = NULL,
-        *portalscriptpathfragment = NULL,
+      /*  *portalscriptpathfragment = NULL,
         *msgscriptpathfragment = NULL,
-        *pingscriptpathfragment = NULL, *authscriptpathfragment = NULL, line[MAX_BUF], *p1, *p2;
-    int http_port, ssl_port, ssl_available, opcode;
+        *pingscriptpathfragment = NULL,
+        *authscriptpathfragment = NULL,*/
+        line[MAX_BUF], *p1, *p2;
+    int http_port,
+      /*   ssl_port,
+         ssl_available, */
+         opcode;
+
     t_auth_serv *new, *tmp;
 
     /* Defaults */
     path = safe_strdup(DEFAULT_AUTHSERVPATH);
     loginscriptpathfragment = safe_strdup(DEFAULT_AUTHSERVLOGINPATHFRAGMENT);
-    portalscriptpathfragment = safe_strdup(DEFAULT_AUTHSERVPORTALPATHFRAGMENT);
+/*    portalscriptpathfragment = safe_strdup(DEFAULT_AUTHSERVPORTALPATHFRAGMENT);
     msgscriptpathfragment = safe_strdup(DEFAULT_AUTHSERVMSGPATHFRAGMENT);
     pingscriptpathfragment = safe_strdup(DEFAULT_AUTHSERVPINGPATHFRAGMENT);
-    authscriptpathfragment = safe_strdup(DEFAULT_AUTHSERVAUTHPATHFRAGMENT);
+    authscriptpathfragment = safe_strdup(DEFAULT_AUTHSERVAUTHPATHFRAGMENT);*/
     http_port = DEFAULT_AUTHSERVPORT;
-    ssl_port = DEFAULT_AUTHSERVSSLPORT;
-    ssl_available = DEFAULT_AUTHSERVSSLAVAILABLE;
+//    ssl_port = DEFAULT_AUTHSERVSSLPORT;
+//    ssl_available = DEFAULT_AUTHSERVSSLAVAILABLE;
 
     /* Parsing loop */
     while (memset(line, 0, MAX_BUF) && fgets(line, MAX_BUF - 1, file) && (strchr(line, '}') == NULL)) {
@@ -315,7 +321,7 @@ parse_auth_server(FILE * file, const char *filename, int *linenum)
                 free(loginscriptpathfragment);
                 loginscriptpathfragment = safe_strdup(p2);
                 break;
-            case oAuthServPortalScriptPathFragment:
+           /* case oAuthServPortalScriptPathFragment:
                 free(portalscriptpathfragment);
                 portalscriptpathfragment = safe_strdup(p2);
                 break;
@@ -333,18 +339,18 @@ parse_auth_server(FILE * file, const char *filename, int *linenum)
                 break;
             case oAuthServSSLPort:
                 ssl_port = atoi(p2);
-                break;
+                break;*/
             case oAuthServHTTPPort:
                 http_port = atoi(p2);
                 break;
-            case oAuthServSSLAvailable:
+           /* case oAuthServSSLAvailable:
                 ssl_available = parse_boolean_value(p2);
                 if (ssl_available < 0) {
                     debug(LOG_WARNING, "Bad syntax for Parameter: SSLAvailable on line %d " "in %s."
                         "The syntax is yes or no." , *linenum, filename);
                     exit(-1);
                 }
-                break;
+                break;*/
             case oBadOption:
             default:
                 debug(LOG_ERR, "Bad option on line %d " "in %s.", *linenum, filename);
@@ -358,30 +364,31 @@ parse_auth_server(FILE * file, const char *filename, int *linenum)
     /* only proceed if we have an host and a path */
     if (host == NULL) {
         free(path);
-        free(authscriptpathfragment);
+/*        free(authscriptpathfragment);
         free(pingscriptpathfragment);
         free(msgscriptpathfragment);
-        free(portalscriptpathfragment);
+        free(portalscriptpathfragment);*/
         free(loginscriptpathfragment);
         return;
     }
 
-    debug(LOG_DEBUG, "Adding %s:%d (SSL: %d) %s to the auth server list", host, http_port, ssl_port, path);
+//    debug(LOG_DEBUG, "Adding %s:%d (SSL: %d) %s to the auth server list", host, http_port, ssl_port, path);
+    debug(LOG_DEBUG, "Adding %s:%d  %s to the auth server list", host, http_port, path);
 
     /* Allocate memory */
     new = safe_malloc(sizeof(t_auth_serv));
 
     /* Fill in struct */
     new->authserv_hostname = host;
-    new->authserv_use_ssl = ssl_available;
+//    new->authserv_use_ssl = ssl_available;
     new->authserv_path = path;
     new->authserv_login_script_path_fragment = loginscriptpathfragment;
-    new->authserv_portal_script_path_fragment = portalscriptpathfragment;
+/*    new->authserv_portal_script_path_fragment = portalscriptpathfragment;
     new->authserv_msg_script_path_fragment = msgscriptpathfragment;
     new->authserv_ping_script_path_fragment = pingscriptpathfragment;
-    new->authserv_auth_script_path_fragment = authscriptpathfragment;
+    new->authserv_auth_script_path_fragment = authscriptpathfragment;*/
     new->authserv_http_port = http_port;
-    new->authserv_ssl_port = ssl_port;
+//    new->authserv_ssl_port = ssl_port;
 
     /* If it's the first, add to config, else append to last server */
     if (config.auth_servers == NULL) {
@@ -720,9 +727,9 @@ config_read(const char *filename)
                 case oFirewallRuleSet:
                     parse_firewall_ruleset(p1, fd, filename, &linenum);
                     break;
-                case oTrustedMACList:
+        /*        case oTrustedMACList:
                     parse_trusted_mac_list(p1);
-                    break;
+                    break;*/
                 case oPopularServers:
                     parse_popular_servers(rawarg);
                     break;
@@ -748,7 +755,7 @@ config_read(const char *filename)
                 case oSyslogFacility:
                     sscanf(p1, "%d", &debugconf.syslog_facility);
                     break;
-                case oHtmlMessageFile:
+/*                case oHtmlMessageFile:
                     config.htmlmsgfile = safe_strdup(p1);
                     break;
                 case oProxyPort:
@@ -791,7 +798,7 @@ config_read(const char *filename)
                     debug(LOG_WARNING, "SSLUseSNI is set but no CyaSSL SNI enabled. Ignoring!");
 #endif
 #endif
-                    break;
+                    break;*/
                 case oBadOption:
                     /* FALL THROUGH */
                 default:
@@ -853,6 +860,7 @@ check_mac_format(char *possiblemac)
 /** @internal
  * Parse the trusted mac list.
  */
+/*
 static void
 parse_trusted_mac_list(const char *ptr)
 {
@@ -865,11 +873,11 @@ parse_trusted_mac_list(const char *ptr)
 
     mac = safe_malloc(18);
 
-    /* strsep modifies original, so let's make a copy */
+     strsep modifies original, so let's make a copy
     ptrcopy = safe_strdup(ptr);
 
     while ((possiblemac = strsep(&ptrcopy, ","))) {
-        /* check for valid format */
+         check for valid format
         if (!check_mac_format(possiblemac)) {
             debug(LOG_ERR,
                   "[%s] not a valid MAC address to trust. See option TrustedMACList in wifidog.conf for correct this mistake.",
@@ -879,7 +887,7 @@ parse_trusted_mac_list(const char *ptr)
             return;
         } else {
             if (sscanf(possiblemac, " %17[A-Fa-f0-9:]", mac) == 1) {
-                /* Copy mac to the list */
+                 Copy mac to the list
 
                 debug(LOG_DEBUG, "Adding MAC address [%s] to trusted list", mac);
 
@@ -889,12 +897,12 @@ parse_trusted_mac_list(const char *ptr)
                     config.trustedmaclist->next = NULL;
                 } else {
                     int skipmac;
-                    /* Advance to the last entry */
+                     Advance to the last entry
                     p = config.trustedmaclist;
                     skipmac = 0;
-                    /* Check before loop to handle case were mac is a duplicate
+                     Check before loop to handle case were mac is a duplicate
                      * of the first and only item in the list so far.
-                     */
+
                     if (0 == strcmp(p->mac, mac)) {
                         skipmac = 1;
                     }
@@ -923,7 +931,7 @@ parse_trusted_mac_list(const char *ptr)
 
     free(mac);
 
-}
+}*/
 
 /** @internal
  * Add a popular server to the list. It prepends for simplicity.

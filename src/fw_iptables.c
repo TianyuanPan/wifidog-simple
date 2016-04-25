@@ -249,7 +249,7 @@ iptables_fw_init(void)
     const s_config *config;
     char *ext_interface = NULL;
     int gw_port = 0;
-    t_trusted_mac *p;
+//    t_trusted_mac *p;
     int proxy_port;
     fw_quiet = 0;
 
@@ -286,9 +286,9 @@ iptables_fw_init(void)
 
 //    iptables_do_command("-t mangle -I POSTROUTING 1 -o %s -j " CHAIN_INCOMING, config->gw_interface);
 
-    for (p = config->trustedmaclist; p != NULL; p = p->next)
+ /*   for (p = config->trustedmaclist; p != NULL; p = p->next)
         iptables_do_command("-t mangle -A " CHAIN_TRUSTED " -m mac --mac-source %s -j MARK --set-mark %d", p->mac,
-                            FW_MARK_KNOWN);
+                            FW_MARK_KNOWN);*/
 
     /*
      *
@@ -311,7 +311,7 @@ iptables_fw_init(void)
     iptables_do_command("-t nat -A " CHAIN_TO_ROUTER " -j ACCEPT");
     iptables_do_command("-t nat -A " CHAIN_OUTGOING " -j " CHAIN_TO_INTERNET);
 
-    if ((proxy_port = config_get_config()->proxy_port) != 0) {
+    /*if ((proxy_port = config_get_config()->proxy_port) != 0) {
         debug(LOG_DEBUG, "Proxy port set, setting proxy rule");
         iptables_do_command("-t nat -A " CHAIN_TO_INTERNET
                             " -p tcp --dport 80 -m mark --mark 0x%u -j REDIRECT --to-port %u", FW_MARK_KNOWN,
@@ -319,7 +319,7 @@ iptables_fw_init(void)
         iptables_do_command("-t nat -A " CHAIN_TO_INTERNET
                             " -p tcp --dport 80 -m mark --mark 0x%u -j REDIRECT --to-port %u", FW_MARK_PROBATION,
                             proxy_port);
-    }
+    }*/
 
     iptables_do_command("-t nat -A " CHAIN_TO_INTERNET " -m mark --mark 0x%u -j ACCEPT", FW_MARK_KNOWN);
     iptables_do_command("-t nat -A " CHAIN_TO_INTERNET " -m mark --mark 0x%u -j ACCEPT", FW_MARK_PROBATION);
@@ -480,6 +480,7 @@ iptables_fw_destroy(void)
  * @param mention A word to find and delete in rules in the given table+chain
  */
 
+//
 //int
 //iptables_fw_destroy_mention(const char *table, const char *chain, const char *mention)
 //{
@@ -533,6 +534,7 @@ iptables_fw_destroy(void)
 //
 //    return (deleted);
 //}
+//
 
 int
 iptables_fw_destroy_mention(const char *table, const char *chain, const char *mention)
@@ -647,5 +649,6 @@ iptables_fw_access_host(fw_access_t type, const char *host)
 
     return rc;
 }
+
 
 

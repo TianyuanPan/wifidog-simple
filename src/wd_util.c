@@ -63,7 +63,6 @@ get_status_text()
     int count;
     time_t uptime = 0;
     unsigned int days = 0, hours = 0, minutes = 0, seconds = 0;
-    t_trusted_mac *p;
 
     uptime = time(NULL) - started_time;
     days = (unsigned int)uptime / (24 * 60 * 60);
